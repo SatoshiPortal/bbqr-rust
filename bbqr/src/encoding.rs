@@ -1,14 +1,14 @@
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Encoding {
     Hex,
     Zlib,
 }
 
 impl Encoding {
-    pub fn from_byte(byte: u8) -> Option<Encoding> {
+    pub fn from_byte(byte: u8) -> Option<Self> {
         match byte {
-            b'H' => Some(Encoding::Hex),
-            b'Z' => Some(Encoding::Zlib),
+            b'H' => Some(Self::Hex),
+            b'Z' => Some(Self::Zlib),
             _ => None,
         }
     }
