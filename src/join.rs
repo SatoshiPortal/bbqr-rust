@@ -10,48 +10,64 @@ pub enum JoinError {
     #[error("Conflicting/variable file type/encodings/sizes")]
     ConflictingHeaders,
 
+    #[error("Too many parts, expected {0}, got {1}")]
+    TooManyParts(usize, usize),
+
+    #[error("Duplicated part index {0} has wrong content")]
+    DuplicatePartWrongContent(usize),
+
+    #[error("Part with index {0} has no data")]
+    PartWithNoData(usize),
+
+    #[error("Missing part, with index {0}")]
+    MissingPart(usize),
+
     #[error(transparent)]
     HeaderParseError(#[from] HeaderParseError),
 }
 
-fn decode_data(parts: &[String], encoding: char) -> Vec<u8> {
-    // Implement the decode_data function based on the encoding
-    // This function should decode the data from the given parts based on the encoding
-    // and return the decoded data as a vector of bytes
-    // You'll need to replace this placeholder implementation with the actual decoding logic
-    vec![]
-}
 // Take scanned data, put into order, decode, return type code and raw data bytes
-pub fn join_qrs(parts: Vec<String>) -> Result<(char, Vec<u8>), JoinError> {
-    let header = get_and_verify_headers(parts.as_slice())?;
+pub fn join_qrs(input_parts: Vec<String>) -> Result<(char, Vec<u8>), JoinError> {
+    let header = get_and_verify_headers(input_parts.as_slice())?;
 
-    // for p in parts {
-    //     let idx = usize::from_str_radix(&p[6..8], 36).unwrap();
-    //     assert!(
-    //         idx < num_parts,
-    //         "got part {} but only expecting {}",
-    //         idx,
-    //         num_parts
-    //     );
-    //
-    //     if !data[idx].is_empty() {
-    //         assert_eq!(
-    //             data[idx],
-    //             p[8..].to_string(),
-    //             "dup part 0x{:02x} has wrong content",
-    //             idx
-    //         );
-    //     } else {
-    //         data[idx] = p[8..].to_string();
-    //     }
-    // }
-    //
-    // let missing: Vec<usize> = (0..num_parts).filter(|&i| data[i].is_empty()).collect();
-    // assert!(missing.is_empty(), "parts missing: {:?}", missing);
-    //
-    // let raw = decode_data(&data, encoding);
+    let mut orderered_parts = vec![String::new(); header.last_index + 1];
 
-    // maybe: decode objects here... U=>text, C=>obj, J=>obj
+    for part in input_parts {
+        if part.is_empty() {
+            continue;
+        }
+
+        // get the index of the the current part
+        let index = usize::from_str_radix(&part[6..8], 36).unwrap();
+
+        // more parts than the header says, error
+        if index > header.last_index {
+            // header gives the last index, so number of parts is last index + 1
+            return Err(JoinError::TooManyParts(header.last_index + 1, index + 1));
+        }
+
+        let current_part_content = &orderered_parts[index];
+        if !current_part_content.is_empty() && current_part_content != &part {
+            return Err(JoinError::DuplicatePartWrongContent(index));
+        }
+
+        let part_data = &part[8..];
+        if part_data.is_empty() {
+            return Err(JoinError::PartWithNoData(index));
+        }
+
+        // store the part data in the correct order
+        orderered_parts[index] = part_data.to_string();
+    }
+
+    // check if any part is missing
+    for (index, part) in orderered_parts.iter().enumerate() {
+        if part.is_empty() {
+            return Err(JoinError::MissingPart(index));
+        }
+    }
+
+    let data = decode::decode_parts(&orderered_parts, header.encoding);
 
     todo!()
 }
@@ -109,7 +125,7 @@ mod tests {
             Header {
                 encoding: Encoding::Zlib,
                 file_type: FileType::UnicodeText,
-                num_parts: 8
+                last_index: 8
             }
         );
     }

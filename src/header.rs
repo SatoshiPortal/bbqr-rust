@@ -25,7 +25,7 @@ pub enum HeaderParseError {
 pub struct Header {
     pub encoding: Encoding,
     pub file_type: FileType,
-    pub num_parts: usize,
+    pub last_index: usize,
 }
 
 impl Header {
@@ -66,7 +66,7 @@ impl Header {
         let header = Header {
             encoding,
             file_type,
-            num_parts,
+            last_index: num_parts,
         };
 
         Ok(header)
@@ -86,7 +86,7 @@ mod tests {
         let header = Header::try_from_str(header_str).unwrap();
         assert_eq!(header.encoding, Encoding::Zlib);
         assert_eq!(header.file_type, FileType::UnicodeText);
-        assert_eq!(header.num_parts, 8);
+        assert_eq!(header.last_index, 8);
     }
 
     #[test]
