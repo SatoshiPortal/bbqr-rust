@@ -25,6 +25,7 @@ pub enum HeaderParseError {
 pub struct Header {
     pub encoding: Encoding,
     pub file_type: FileType,
+    // this is called num_parts in the reference implementation
     pub last_index: usize,
 }
 

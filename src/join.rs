@@ -30,6 +30,7 @@ pub enum JoinError {
 pub fn join_qrs(input_parts: Vec<String>) -> Result<(char, Vec<u8>), JoinError> {
     let header = get_and_verify_headers(input_parts.as_slice())?;
 
+    // pre-allocate the parts, so we can insert them in the correct order, faster than sorting
     let mut orderered_parts = vec![String::new(); header.last_index + 1];
 
     for part in input_parts {
@@ -67,7 +68,7 @@ pub fn join_qrs(input_parts: Vec<String>) -> Result<(char, Vec<u8>), JoinError> 
         }
     }
 
-    let data = decode::decode_parts(&orderered_parts, header.encoding);
+    let data = decode::decode_ordered_parts(&orderered_parts, header.encoding);
 
     todo!()
 }
