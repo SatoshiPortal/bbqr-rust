@@ -33,8 +33,21 @@ pub enum JoinError {
     DecodeError(#[from] decode::DecodeError),
 }
 
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct JoinedData {
+    pub encoding: Encoding,
+    pub data: Vec<u8>,
+}
+
+impl JoinedData {
+    pub fn try_from_parts(parts: Vec<String>) -> Result<Self, JoinError> {
+        let (encoding, data) = join_qrs(parts)?;
+        Ok(Self { encoding, data })
+    }
+}
+
 // Take scanned data, put into order, decode, return type code and raw data bytes
-pub fn join_qrs(input_parts: Vec<String>) -> Result<(Encoding, Vec<u8>), JoinError> {
+fn join_qrs(input_parts: Vec<String>) -> Result<(Encoding, Vec<u8>), JoinError> {
     let header = get_and_verify_headers(input_parts.as_slice())?;
 
     // pre-allocate the parts, so we can insert them in the correct order, faster than sorting
