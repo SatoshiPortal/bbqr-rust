@@ -25,8 +25,7 @@ pub enum HeaderParseError {
 pub struct Header {
     pub encoding: Encoding,
     pub file_type: FileType,
-    // this is called num_parts in the reference implementation
-    pub last_index: usize,
+    pub num_parts: usize,
 }
 
 impl Header {
@@ -58,15 +57,14 @@ impl Header {
         let num_parts_str = &header_str[4..6];
         let num_parts = usize::from_str_radix(num_parts_str, 36).map_err(|_| {
             HeaderParseError::InvalidHeaderParts(format!(
-                "Invalid number of parts: {}",
-                num_parts_str
+                "Invalid number of parts: {num_parts_str}",
             ))
         })?;
 
         let header = Header {
             encoding,
             file_type,
-            last_index: num_parts,
+            num_parts,
         };
 
         Ok(header)
@@ -86,7 +84,7 @@ mod tests {
         let header = Header::try_from_str(header_str).unwrap();
         assert_eq!(header.encoding, Encoding::Zlib);
         assert_eq!(header.file_type, FileType::UnicodeText);
-        assert_eq!(header.last_index, 8);
+        assert_eq!(header.num_parts, 8);
     }
 
     #[test]

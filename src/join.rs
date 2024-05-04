@@ -26,6 +26,9 @@ pub enum JoinError {
     #[error("Missing part, with index {0}")]
     MissingPart(usize),
 
+    #[error("Part not long enough, expecting at least 9 characters, only got {0}")]
+    PartTooShort(usize),
+
     #[error(transparent)]
     HeaderParseError(#[from] HeaderParseError),
 
@@ -34,45 +37,57 @@ pub enum JoinError {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub struct JoinedData {
+pub struct Joined {
     pub encoding: Encoding,
+    pub file_type: crate::file_type::FileType,
     pub data: Vec<u8>,
 }
 
-impl JoinedData {
+impl Joined {
     pub fn try_from_parts(parts: Vec<String>) -> Result<Self, JoinError> {
-        let (encoding, data) = join_qrs(parts)?;
-        Ok(Self { encoding, data })
+        let (header, data) = join_qrs(parts)?;
+        Ok(Self {
+            encoding: header.encoding,
+            file_type: header.file_type,
+            data,
+        })
     }
 }
 
 // Take scanned data, put into order, decode, return type code and raw data bytes
-fn join_qrs(input_parts: Vec<String>) -> Result<(Encoding, Vec<u8>), JoinError> {
+fn join_qrs(input_parts: Vec<String>) -> Result<(Header, Vec<u8>), JoinError> {
     let header = get_and_verify_headers(input_parts.as_slice())?;
 
     // pre-allocate the parts, so we can insert them in the correct order, faster than sorting
-    let mut orderered_parts = vec![String::new(); header.last_index + 1];
+    let mut orderered_parts = vec![String::new(); header.num_parts];
 
     for part in input_parts {
         if part.is_empty() {
             continue;
         }
 
+        if part.len() < 9 {
+            return Err(JoinError::PartTooShort(part.len()));
+        }
+
         // get the index of the the current part
         let index = usize::from_str_radix(&part[6..8], 36).unwrap();
 
         // more parts than the header says, error
-        if index > header.last_index {
+        if index > header.num_parts {
             // header gives the last index, so number of parts is last index + 1
-            return Err(JoinError::TooManyParts(header.last_index + 1, index + 1));
+            return Err(JoinError::TooManyParts(header.num_parts + 1, index + 1));
         }
 
         let current_part_content = &orderered_parts[index];
-        if !current_part_content.is_empty() && current_part_content != &part {
+        let part_data = &part[8..];
+
+        if !current_part_content.is_empty() && current_part_content != part_data {
+            println!("current_part_content: {}", current_part_content);
+            println!("part: {}", part);
             return Err(JoinError::DuplicatePartWrongContent(index));
         }
 
-        let part_data = &part[8..];
         if part_data.is_empty() {
             return Err(JoinError::PartWithNoData(index));
         }
@@ -90,7 +105,7 @@ fn join_qrs(input_parts: Vec<String>) -> Result<(Encoding, Vec<u8>), JoinError> 
 
     let data = decode::decode_ordered_parts(&orderered_parts, header.encoding)?;
 
-    Ok((header.encoding, data))
+    Ok((header, data))
 }
 
 /// Verify that all the headers have the same variable filetype, encodings and sizes
@@ -146,7 +161,7 @@ mod tests {
             Header {
                 encoding: Encoding::Zlib,
                 file_type: FileType::UnicodeText,
-                last_index: 8
+                num_parts: 8
             }
         );
     }
