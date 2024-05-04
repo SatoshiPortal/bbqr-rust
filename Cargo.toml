@@ -9,12 +9,9 @@ edition = "2021"
 # error handling
 thiserror = "1.0.59"
 
-# utils
-once_cell = "1.19.0"
-
 # hex/base32 encoding
 data-encoding = "2.6.0"
 
 # zlib compression
-flate2 = {version ="1.0.30", features = ["any_zlib", "zlib"], default-features = false }
+flate2 = {version ="1.0.30", features = ["any_zlib", "zlib-ng"], default-features = false }
 
