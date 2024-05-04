@@ -55,7 +55,6 @@ impl Header {
         let file_type = FileType::from_byte(file_type_byte)
             .ok_or(HeaderParseError::InvalidFileType(file_type_byte as char))?;
 
-        // in base36
         let num_parts_str = &header_str[4..6];
         let num_parts = usize::from_str_radix(num_parts_str, 36).map_err(|_| {
             HeaderParseError::InvalidHeaderParts(format!(

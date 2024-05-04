@@ -1,6 +1,10 @@
 //! QR code joining
 
-use crate::header::{Header, HeaderParseError};
+use crate::{
+    decode,
+    encoding::Encoding,
+    header::{Header, HeaderParseError},
+};
 
 #[derive(Debug, thiserror::Error, PartialEq, Eq)]
 pub enum JoinError {
@@ -24,10 +28,13 @@ pub enum JoinError {
 
     #[error(transparent)]
     HeaderParseError(#[from] HeaderParseError),
+
+    #[error(transparent)]
+    DecodeError(#[from] decode::DecodeError),
 }
 
 // Take scanned data, put into order, decode, return type code and raw data bytes
-pub fn join_qrs(input_parts: Vec<String>) -> Result<(char, Vec<u8>), JoinError> {
+pub fn join_qrs(input_parts: Vec<String>) -> Result<(Encoding, Vec<u8>), JoinError> {
     let header = get_and_verify_headers(input_parts.as_slice())?;
 
     // pre-allocate the parts, so we can insert them in the correct order, faster than sorting
@@ -68,9 +75,9 @@ pub fn join_qrs(input_parts: Vec<String>) -> Result<(char, Vec<u8>), JoinError> 
         }
     }
 
-    let data = decode::decode_ordered_parts(&orderered_parts, header.encoding);
+    let data = decode::decode_ordered_parts(&orderered_parts, header.encoding)?;
 
-    todo!()
+    Ok((header.encoding, data))
 }
 
 /// Verify that all the headers have the same variable filetype, encodings and sizes
