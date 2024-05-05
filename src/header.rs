@@ -34,7 +34,7 @@ impl Header {
             return Err(HeaderParseError::Empty);
         }
 
-        // note: only safe to do if we are sure that the string is ASCII
+        // note: okay to work directyl with bytes here, since only ASCII is used in the protocol
         let first_header_bytes = header_str.as_bytes();
 
         let header_len = header_str.len();
