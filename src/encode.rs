@@ -118,7 +118,12 @@ impl Encoded {
         // we need to adjust the capacity to be a multiple of the encoding split mod
         let adjusted_capacity = base_capacity - (base_capacity % encoding.split_mod());
 
+        println!("base_capacity: {}", base_capacity);
+        println!("adjusted_capacity: {}", adjusted_capacity);
+        println!("data_size: {}", data_size);
+
         let estimated_count = usize::div_ceil(data_size, adjusted_capacity);
+        println!("estimated_count: {}", estimated_count);
 
         // if we can fit all the data in one qr code
         if estimated_count == 1 {
@@ -153,6 +158,47 @@ mod tests {
     use crate::decode;
 
     use super::*;
+
+    #[test]
+    fn test_number_of_qrs_needed() {
+        // from running reference python implementation
+        let data = vec![b'A'; 2500];
+        let version = Version::V05;
+
+        let encoded = Encoded::try_new_from_data(&data, Encoding::Hex).unwrap();
+        let qrs_needed = encoded.number_of_qrs_needed(version);
+
+        assert_eq!(encoded.data.len(), 5000);
+        assert_eq!(qrs_needed.count, 35);
+        assert_eq!(qrs_needed.data_per_qr, 146);
+    }
+
+    #[test]
+    fn test_encode_hex() {
+        let data = b"Hello, world!";
+        let encoded = Encoded::try_new_from_data(data, Encoding::Hex);
+
+        assert!(encoded.is_ok());
+
+        let encoded = encoded.unwrap();
+        assert_eq!(encoded.encoding, Encoding::Hex);
+        assert_eq!(encoded.data, "48656C6C6F2C20776F726C6421");
+    }
+
+    #[test]
+    fn test_encode_base32() {
+        let data = b"The quick brown fox jumps over the lazy dog.";
+        let encoded = Encoded::try_new_from_data(data, Encoding::Base32);
+
+        assert!(encoded.is_ok());
+
+        let encoded = encoded.unwrap();
+        assert_eq!(encoded.encoding, Encoding::Base32);
+        assert_eq!(
+            encoded.data,
+            "KRUGKIDROVUWG2ZAMJZG653OEBTG66BANJ2W24DTEBXXMZLSEB2GQZJANRQXU6JAMRXWOLQ"
+        );
+    }
 
     #[test]
     fn test_encode_compression() {
