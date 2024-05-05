@@ -34,7 +34,7 @@ pub struct Header {
 
 impl Display for Header {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-        let base_36_count = format!("{:0>2}", radix(self.num_parts, 36)).to_uppercase();
+        let base_36_count = int_to_padded_base_36(self.num_parts);
 
         write!(
             f,
@@ -98,11 +98,23 @@ impl Header {
     }
 }
 
+pub(crate) fn int_to_padded_base_36(num: usize) -> String {
+    // if less than 36 need padding
+    if num < 36 {
+        // using in format directly does not adding padding for some reason
+        let base_36 = radix(num, 36).to_string().to_uppercase();
+        return format!("{:0>2}", base_36);
+    }
+
+    format!("{:#}", radix(num, 36))
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
     use crate::Encoding;
     use crate::FileType;
+    use pretty_assertions::assert_eq;
 
     #[test]
     fn test_header_parse() {
@@ -121,5 +133,17 @@ mod tests {
 
         assert!(header.is_err());
         assert!(header.unwrap_err() == HeaderParseError::InvalidFixedHeader);
+    }
+
+    #[test]
+    fn test_int_to_padded_base_36() {
+        assert_eq!(int_to_padded_base_36(0), "00");
+        assert_eq!(int_to_padded_base_36(2), "02");
+        assert_eq!(int_to_padded_base_36(1), "01");
+        assert_eq!(int_to_padded_base_36(35), "0Z");
+        assert_eq!(int_to_padded_base_36(36), "10");
+        assert_eq!(int_to_padded_base_36(37), "11");
+        assert_eq!(int_to_padded_base_36(556), "FG");
+        assert_eq!(int_to_padded_base_36(1295), "ZZ");
     }
 }

@@ -147,3 +147,50 @@ impl Encoded {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::decode;
+
+    use super::*;
+
+    #[test]
+    fn test_encode_compression() {
+        let file_names = [
+            "test_data/1in1000out.psbt",
+            "test_data/1in100out.psbt",
+            "test_data/1in10out.psbt",
+            "test_data/1in20out.psbt",
+            "test_data/1in2out.psbt",
+            "test_data/devils-txn.txn",
+            "test_data/finalized-by-ckcc.txn",
+            "test_data/last.txn",
+            "test_data/nfc-result.txn",
+        ];
+
+        for file_name in &file_names {
+            let raw = std::fs::read(file_name).expect("Failed to read file");
+
+            let encoded = Encoded::try_new_from_data(&raw, Encoding::Zlib);
+
+            assert!(encoded.is_ok());
+
+            let encoded = encoded.unwrap();
+            assert_eq!(encoded.encoding, Encoding::Zlib);
+
+            let check = decode::decode_ordered_parts(&[encoded.data.clone()], Encoding::Zlib);
+
+            assert!(check.is_ok());
+
+            let check = check.unwrap();
+            assert_eq!(check, raw);
+
+            let decode_as_base32 =
+                decode::decode_ordered_parts(&[encoded.data.clone()], Encoding::Base32);
+            assert!(decode_as_base32.is_ok());
+
+            let decode_as_base32 = decode_as_base32.unwrap();
+            assert!(decode_as_base32.len() < raw.len());
+        }
+    }
+}

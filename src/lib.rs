@@ -10,6 +10,9 @@ pub(crate) mod split;
 
 pub type Joined = join::Joined;
 pub type Split = split::Split;
+pub type SplitOptions = split::SplitOptions;
 
 pub type Encoding = encode::Encoding;
 pub type FileType = file_type::FileType;
+
+pub type Version = qr::Version;

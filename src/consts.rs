@@ -1,5 +1,8 @@
 pub static HEADER_LENGTH: usize = 8;
 
+/// The maximum number of parts that can be joined, 36^2 - 1 = 1295, ZZ = 1295
+pub static MAX_PARTS: usize = 1295;
+
 // taken from the tables in pyqrcode, tested that its accuated in /tests/test_data_capacity.py
 // version -> error correction level -> encoding = capacit
 pub const QR_DATA_CAPACITY: [[[u16; 5]; 4]; 40] = [

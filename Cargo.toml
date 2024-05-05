@@ -21,3 +21,9 @@ radix_fmt = "1.0.0"
 # zlib compression
 flate2 = {version ="1.0", features = ["any_zlib", "zlib-ng"], default-features = false }
 
+[dev-dependencies]
+# for testing
+rand = "0.8.5"
+
+pretty_assertions = "1.4.0"
+

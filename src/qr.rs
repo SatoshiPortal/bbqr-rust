@@ -3,7 +3,7 @@ use std::cmp::Ordering;
 use crate::consts::QR_DATA_CAPACITY;
 
 /// Enum containing all possible `QRCode` versions, taken from fast_qr crate
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord)]
 pub enum Version {
     /// Version n°01
     V01 = 0,
@@ -110,19 +110,11 @@ enum CapacityTableEncoding {
     Byte = 3,
 }
 
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub(crate) struct QrsNeeded {
     pub version: Version,
     pub count: usize,
     pub data_per_qr: usize,
-}
-
-impl Eq for QrsNeeded {}
-impl PartialEq for QrsNeeded {
-    fn eq(&self, other: &Self) -> bool {
-        self.version as usize == other.version as usize
-            && self.count == other.count
-            && self.data_per_qr == other.data_per_qr
-    }
 }
 
 // we want to sort by count first, then by version
