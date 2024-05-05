@@ -15,6 +15,9 @@ thiserror = "1.0.59"
 # hex/base32 encoding
 data-encoding = "2.6.0"
 
+# base36 encoding
+radix_fmt = "1.0.0"
+
 # zlib compression
 flate2 = {version ="1.0", features = ["any_zlib", "zlib-ng"], default-features = false }
 

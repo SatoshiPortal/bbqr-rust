@@ -1,3 +1,7 @@
+use std::fmt::{self, Display, Formatter};
+
+use radix_fmt::radix;
+
 use crate::{consts::HEADER_LENGTH, Encoding, FileType};
 
 #[derive(Debug, thiserror::Error, PartialEq, Eq)]
@@ -28,7 +32,29 @@ pub struct Header {
     pub num_parts: usize,
 }
 
+impl Display for Header {
+    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
+        let base_36_count = format!("{:0>2}", radix(self.num_parts, 36)).to_uppercase();
+
+        write!(
+            f,
+            "B${}{}{}",
+            self.encoding.as_byte() as char,
+            self.file_type.as_byte() as char,
+            base_36_count
+        )
+    }
+}
+
 impl Header {
+    pub fn new(encoding: Encoding, file_type: FileType, num_parts: usize) -> Self {
+        Self {
+            encoding,
+            file_type,
+            num_parts,
+        }
+    }
+
     pub fn try_from_str(header_str: &str) -> Result<Self, HeaderParseError> {
         if header_str.is_empty() {
             return Err(HeaderParseError::Empty);
