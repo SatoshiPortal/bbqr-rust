@@ -90,7 +90,7 @@ mod tests {
 
     #[test]
     fn fails_on_bad_header() {
-        let header_str = "B#88888";
+        let header_str = "B#888888";
         let header = Header::try_from_str(header_str);
 
         assert!(header.is_err());

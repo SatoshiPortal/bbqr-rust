@@ -69,9 +69,8 @@ fn join_qrs(input_parts: Vec<String>) -> Result<(Header, Vec<u8>), JoinError> {
         let index = usize::from_str_radix(&part[6..8], 36).unwrap();
 
         // more parts than the header says, error
-        if index > header.num_parts {
-            // header gives the last index, so number of parts is last index + 1
-            return Err(JoinError::TooManyParts(header.num_parts + 1, index + 1));
+        if index >= header.num_parts {
+            return Err(JoinError::TooManyParts(header.num_parts, index + 1));
         }
 
         let current_part_content = &orderered_parts[index];
