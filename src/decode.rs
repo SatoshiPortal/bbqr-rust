@@ -1,7 +1,7 @@
 use std::io::Read as _;
 
 use crate::encoding::Encoding;
-use data_encoding::BASE32;
+use data_encoding::BASE32_NOPAD;
 use data_encoding::HEXUPPER;
 
 #[derive(Debug, thiserror::Error, PartialEq, Eq)]
@@ -56,7 +56,7 @@ fn decode_and_join_base32_parts(parts: &[String]) -> Result<Vec<u8>, DecodeError
         .iter()
         .enumerate()
         .flat_map(|(index, part)| {
-            BASE32
+            BASE32_NOPAD
                 .decode(part.as_bytes())
                 .map_err(|error| DecodeError::UnableToDecodeBase32(index, error))
         })
