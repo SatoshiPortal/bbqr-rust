@@ -1,1 +1,1 @@
-pub static HEADER_LEN: usize = 8;
+pub static HEADER_LENGTH: usize = 8;

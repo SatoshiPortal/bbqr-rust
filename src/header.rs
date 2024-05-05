@@ -1,4 +1,4 @@
-use crate::{encoding::Encoding, file_type::FileType};
+use crate::{consts::HEADER_LENGTH, encoding::Encoding, file_type::FileType};
 
 #[derive(Debug, thiserror::Error, PartialEq, Eq)]
 pub enum HeaderParseError {
@@ -14,8 +14,8 @@ pub enum HeaderParseError {
     #[error("Invalid fixed header")]
     InvalidFixedHeader,
 
-    #[error("Invalid header size, not long enough")]
-    InvalidHeaderSize,
+    #[error("Invalid header size, not long enough, expected {HEADER_LENGTH} bytes, got {0}")]
+    InvalidHeaderSize(usize),
 
     #[error("Invalid header parts {0}")]
     InvalidHeaderParts(String),
@@ -37,8 +37,9 @@ impl Header {
         // note: only safe to do if we are sure that the string is ASCII
         let first_header_bytes = header_str.as_bytes();
 
-        if header_str.len() < 6 {
-            return Err(HeaderParseError::InvalidHeaderSize);
+        let header_len = header_str.len();
+        if header_len < HEADER_LENGTH {
+            return Err(HeaderParseError::InvalidHeaderSize(header_len));
         }
 
         let fixed_header = &header_str[0..2];

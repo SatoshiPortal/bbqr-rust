@@ -1,6 +1,7 @@
 //! QR code joining
 
 use crate::{
+    consts::HEADER_LENGTH,
     decode,
     encoding::Encoding,
     header::{Header, HeaderParseError},
@@ -25,9 +26,6 @@ pub enum JoinError {
 
     #[error("Missing part, with index {0}")]
     MissingPart(usize),
-
-    #[error("Part not long enough, expecting at least 9 characters, only got {0}")]
-    PartTooShort(usize),
 
     #[error(transparent)]
     HeaderParseError(#[from] HeaderParseError),
@@ -66,11 +64,8 @@ fn join_qrs(input_parts: Vec<String>) -> Result<(Header, Vec<u8>), JoinError> {
             continue;
         }
 
-        if part.len() < 9 {
-            return Err(JoinError::PartTooShort(part.len()));
-        }
-
         // get the index of the the current part
+        // already checked in get_and_verify_headers that the header is long enough
         let index = usize::from_str_radix(&part[6..8], 36).unwrap();
 
         // more parts than the header says, error
@@ -128,7 +123,7 @@ fn get_and_verify_headers(parts: &[String]) -> Result<Header, JoinError> {
             continue;
         }
 
-        if part.len() < 6 {
+        if part.len() < HEADER_LENGTH {
             return Err(JoinError::ConflictingHeaders);
         }
 
