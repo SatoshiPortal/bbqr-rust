@@ -4,7 +4,7 @@ use crate::{
     encode::{EncodeError, Encoded},
     file_type::FileType,
     header::Header,
-    qr::{self, QrsNeeded, Version},
+    qr::{QrsNeeded, Version},
     Encoding,
 };
 
@@ -98,7 +98,7 @@ fn find_best_version(encoded: &Encoded, options: &SplitOptions) -> Result<QrsNee
     let mut heap = BinaryHeap::new();
 
     for version_index in options.min_version as usize..=options.max_version as usize {
-        let version = qr::version_from_index(version_index);
+        let version = Version::from_index(version_index);
         let qrs_needed = encoded.number_of_qrs_needed(version);
 
         // min heap, reverse the order

@@ -5,7 +5,7 @@ use flate2::{write::ZlibEncoder, Compress, Compression};
 
 use crate::{
     consts::HEADER_LENGTH,
-    qr::{version_data_capacity, QrsNeeded, Version},
+    qr::{QrsNeeded, Version},
 };
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -113,12 +113,10 @@ impl Encoded {
         let data_size = self.data.len();
         let encoding = &self.encoding;
 
-        let base_capacity = version_data_capacity(version) - HEADER_LENGTH as u16;
-        let base_capacity = base_capacity as usize;
+        let base_capacity = version.data_capacity() - HEADER_LENGTH;
 
         // we need to adjust the capacity to be a multiple of the encoding split mod
         let adjusted_capacity = base_capacity - (base_capacity % encoding.split_mod());
-        let adjusted_capacity = adjusted_capacity as usize;
 
         let estimated_count = usize::div_ceil(data_size, adjusted_capacity);
 

@@ -21,6 +21,3 @@ radix_fmt = "1.0.0"
 # zlib compression
 flate2 = {version ="1.0", features = ["any_zlib", "zlib-ng"], default-features = false }
 
-# qr code generation
-fast_qr = "0.12.0"
-
