@@ -16,5 +16,8 @@ thiserror = "1.0.59"
 data-encoding = "2.6.0"
 
 # zlib compression
-flate2 = {version ="1.0.30", features = ["any_zlib", "zlib-ng"], default-features = false }
+flate2 = {version ="1.0", features = ["any_zlib", "zlib-ng"], default-features = false }
+
+# qr code generation
+fast_qr = "0.12.0"
 

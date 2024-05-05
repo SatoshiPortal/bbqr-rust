@@ -3,8 +3,8 @@
 use crate::{
     consts::HEADER_LENGTH,
     decode,
-    encoding::Encoding,
     header::{Header, HeaderParseError},
+    Encoding,
 };
 
 #[derive(Debug, thiserror::Error, PartialEq, Eq)]
@@ -137,8 +137,7 @@ fn get_and_verify_headers(parts: &[String]) -> Result<Header, JoinError> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::encoding::Encoding;
-    use crate::file_type::FileType;
+    use crate::{Encoding, FileType};
 
     #[test]
     fn test_verify_header() {

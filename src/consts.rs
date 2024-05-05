@@ -1,7 +1,8 @@
 pub static HEADER_LENGTH: usize = 8;
 
 // taken from the tables in pyqrcode, tested that its accuated in /tests/test_data_capacity.py
-const QR_DATA_CAPACITY: [[[u16; 5]; 4]; 40] = [
+// version -> error correction level -> encoding = capacit
+pub const QR_DATA_CAPACITY: [[[u16; 5]; 4]; 40] = [
     [
         [152, 41, 25, 17, 10],
         [128, 34, 20, 14, 8],

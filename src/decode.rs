@@ -1,3 +1,4 @@
+//! Join and decode parts of a string using the given encoding.
 use std::io::Read as _;
 
 use crate::encoding::Encoding;

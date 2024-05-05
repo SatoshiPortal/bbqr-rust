@@ -1,4 +1,4 @@
-use crate::{consts::HEADER_LENGTH, encoding::Encoding, file_type::FileType};
+use crate::{consts::HEADER_LENGTH, Encoding, FileType};
 
 #[derive(Debug, thiserror::Error, PartialEq, Eq)]
 pub enum HeaderParseError {
@@ -75,8 +75,8 @@ impl Header {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::encoding::Encoding;
-    use crate::file_type::FileType;
+    use crate::Encoding;
+    use crate::FileType;
 
     #[test]
     fn test_header_parse() {
