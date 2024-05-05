@@ -8,6 +8,7 @@ fn test_loopback() {
     let max_versions = [Version::V11, Version::V29, Version::V40];
     let low_entropy_options = [true, false];
 
+    // cartesian product of all the options
     for encoding in &encodings {
         for &size in &sizes {
             for &max_version in &max_versions {
@@ -49,27 +50,39 @@ fn test_loopback() {
                     }
 
                     assert_eq!(joined.encoding, split.encoding);
-                    // assert_eq!(joined.data, data);
+                    assert_eq!(joined.data, data);
                 }
             }
         }
     }
 }
 
-// #[test]
-// fn test_min_split() {
-//     let size = 10_000;
-//     let data: Vec<u8> = (0..size).map(|_| rand::random::<u8>()).collect();
-//
-//     for min_split in 2..10 {
-//         let (vers, parts) = split_qrs(&data, "T", Some('2'), min_split, 40).unwrap();
-//         assert!(parts.len() >= min_split);
-//
-//         let (xtype, readback) = join_qrs(&parts).unwrap();
-//         assert_eq!(xtype, "T");
-//         assert_eq!(readback, data);
-//     }
-// }
+#[test]
+fn test_min_split() {
+    let size = 10_000;
+    let data: Vec<u8> = (0..size).map(|_| rand::random::<u8>()).collect();
+
+    for min_split in 2..10 {
+        let split = Split::try_from_data(
+            &data,
+            FileType::Transaction,
+            SplitOptions {
+                encoding: Encoding::Base32,
+                min_split_number: min_split,
+                ..Default::default()
+            },
+        )
+        .unwrap();
+
+        println!("min_split: {}, split {}", min_split, split.parts.len());
+
+        assert!(split.parts.len() >= min_split);
+
+        let joined = Joined::try_from_parts(split.parts).unwrap();
+        assert_eq!(joined.file_type, FileType::Transaction);
+        assert_eq!(joined.data, data);
+    }
+}
 
 // #[test]
 // fn test_edge27() {

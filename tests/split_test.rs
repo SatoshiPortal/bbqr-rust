@@ -5,16 +5,15 @@ use pretty_assertions::assert_eq;
 fn test_real_from_readme() {
     let data = include_str!("../test_data/BBQr.md");
 
-    // let encodings = [Encoding::Hex, Encoding::Base32, Encoding::Zlib];
-    let encodings = [Encoding::Hex];
+    let encodings = [Encoding::Hex, Encoding::Base32, Encoding::Zlib];
     for encoding in encodings {
         let split = Split::try_from_data(
             data.as_bytes(),
             FileType::UnicodeText,
             SplitOptions {
                 encoding,
-                min_split_size: 1,
-                max_split_size: 1295,
+                min_split_number: 1,
+                max_split_number: 1295,
                 min_version: Version::V01,
                 max_version: Version::V40,
             },

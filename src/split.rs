@@ -1,5 +1,3 @@
-use std::{cmp::Reverse, collections::BinaryHeap};
-
 use crate::{
     consts::MAX_PARTS,
     encode::{EncodeError, Encoded},
@@ -34,8 +32,10 @@ pub struct Split {
 #[derive(Debug, Clone)]
 pub struct SplitOptions {
     pub encoding: Encoding,
-    pub min_split_size: usize,
-    pub max_split_size: usize,
+    /// min number of parts to split into
+    pub min_split_number: usize,
+    /// max number of parts to split into
+    pub max_split_number: usize,
     pub min_version: Version,
     pub max_version: Version,
 }
@@ -44,8 +44,8 @@ impl Default for SplitOptions {
     fn default() -> Self {
         Self {
             encoding: Encoding::Zlib,
-            min_split_size: 1,
-            max_split_size: 1295,
+            min_split_number: 1,
+            max_split_number: 1295,
             min_version: Version::V01,
             max_version: Version::V40,
         }
@@ -71,8 +71,8 @@ fn split_qrs(
         return Err(SplitError::Empty);
     }
 
-    if options.max_split_size > MAX_PARTS {
-        return Err(SplitError::MaxSplitSizeTooLarge(options.max_split_size));
+    if options.max_split_number > MAX_PARTS {
+        return Err(SplitError::MaxSplitSizeTooLarge(options.max_split_number));
     }
 
     let encoded = Encoded::try_new_from_data(bytes, options.encoding)?;
@@ -112,10 +112,20 @@ fn find_best_version(encoded: &Encoded, options: &SplitOptions) -> Result<QrsNee
         let version = Version::from_index(version_index);
         let qrs_needed = encoded.number_of_qrs_needed(version);
 
+        let qrs_needed_count = qrs_needed.count;
+
         // if this option needs more than the max, skip it
-        if qrs_needed.count > MAX_PARTS {
+        if qrs_needed_count > MAX_PARTS {
             continue;
         };
+
+        if qrs_needed.count < options.min_split_number {
+            continue;
+        }
+
+        if qrs_needed.count > options.max_split_number {
+            continue;
+        }
 
         match &best_option {
             Some(ref best) => {
@@ -156,8 +166,8 @@ mod tests {
             FileType::Psbt,
             SplitOptions {
                 encoding: super::Encoding::Hex,
-                min_split_size: 1,
-                max_split_size: 1295,
+                min_split_number: 1,
+                max_split_number: 1295,
                 min_version: super::Version::V01,
                 max_version: super::Version::V40,
             },
@@ -189,8 +199,8 @@ mod tests {
             FileType::Psbt,
             SplitOptions {
                 encoding: super::Encoding::Hex,
-                min_split_size: 1,
-                max_split_size: 1295,
+                min_split_number: 1,
+                max_split_number: 1295,
                 min_version: super::Version::V01,
                 max_version: super::Version::V40,
             },
@@ -208,8 +218,8 @@ mod tests {
             FileType::Psbt,
             SplitOptions {
                 encoding: super::Encoding::Hex,
-                min_split_size: 1,
-                max_split_size: 1295,
+                min_split_number: 1,
+                max_split_number: 1295,
                 min_version: super::Version::V11,
                 max_version: super::Version::V40,
             },
