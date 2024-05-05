@@ -84,9 +84,12 @@ fn split_qrs(
     let header_string = Header::new(encoded.encoding, file_type, best_version.count).to_string();
 
     for i in 0..best_version.count {
-        let part_index_base36 = int_to_padded_base_36(i);
-        let data_part = &encoded_data_str[i..i + best_version.data_per_qr];
+        let start_byte = i * best_version.data_per_qr;
+        let end_byte = (start_byte + best_version.data_per_qr).min(encoded_data_str.len());
 
+        let part_index_base36 = int_to_padded_base_36(i);
+
+        let data_part = &encoded_data_str[start_byte..end_byte];
         let part = format!("{}{}{}", header_string, part_index_base36, data_part);
 
         parts.push(part);

@@ -118,12 +118,7 @@ impl Encoded {
         // we need to adjust the capacity to be a multiple of the encoding split mod
         let adjusted_capacity = base_capacity - (base_capacity % encoding.split_mod());
 
-        println!("base_capacity: {}", base_capacity);
-        println!("adjusted_capacity: {}", adjusted_capacity);
-        println!("data_size: {}", data_size);
-
         let estimated_count = usize::div_ceil(data_size, adjusted_capacity);
-        println!("estimated_count: {}", estimated_count);
 
         // if we can fit all the data in one qr code
         if estimated_count == 1 {
