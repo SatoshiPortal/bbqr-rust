@@ -18,7 +18,7 @@ pub enum SplitError {
     #[error("Max split size is too large, max is {MAX_PARTS}, got {0}")]
     MaxSplitSizeTooLarge(usize),
 
-    #[error("Min split size is too small")]
+    #[error("Min split size is too small, must atleast be 1")]
     MinSplitTooSmall,
 
     #[error("Invalid split min and max range, min is larger than max")]
@@ -194,11 +194,11 @@ mod tests {
             &data,
             FileType::Psbt,
             SplitOptions {
-                encoding: super::Encoding::Hex,
+                encoding: Encoding::Hex,
                 min_split_number: 1,
                 max_split_number: 1295,
-                min_version: super::Version::V01,
-                max_version: super::Version::V40,
+                min_version: Version::V01,
+                max_version: Version::V40,
             },
         );
 
@@ -227,11 +227,11 @@ mod tests {
             &data,
             FileType::Psbt,
             SplitOptions {
-                encoding: super::Encoding::Hex,
+                encoding: Encoding::Hex,
                 min_split_number: 1,
                 max_split_number: 1295,
-                min_version: super::Version::V01,
-                max_version: super::Version::V40,
+                min_version: Version::V01,
+                max_version: Version::V40,
             },
         );
 
@@ -246,11 +246,11 @@ mod tests {
             &data,
             FileType::Psbt,
             SplitOptions {
-                encoding: super::Encoding::Hex,
+                encoding: Encoding::Hex,
                 min_split_number: 1,
                 max_split_number: 1295,
-                min_version: super::Version::V11,
-                max_version: super::Version::V40,
+                min_version: Version::V11,
+                max_version: Version::V40,
             },
         );
 
