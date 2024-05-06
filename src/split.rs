@@ -18,6 +18,15 @@ pub enum SplitError {
     #[error("Max split size is too large, max is {MAX_PARTS}, got {0}")]
     MaxSplitSizeTooLarge(usize),
 
+    #[error("Min split size is too small")]
+    MinSplitTooSmall,
+
+    #[error("Invalid split min and max range, min is larger than max")]
+    InvalidSplitRange,
+
+    #[error("Invalid version min and max range, min is larger than max")]
+    InvalidVersionRange,
+
     #[error(transparent)]
     EncodeError(#[from] EncodeError),
 }
@@ -75,6 +84,9 @@ fn split_qrs(
         return Err(SplitError::MaxSplitSizeTooLarge(options.max_split_number));
     }
 
+    // validate the options
+    options.validate()?;
+
     let encoded = Encoded::try_new_from_data(bytes, options.encoding)?;
     let encoded_data_str = encoded.data.as_str();
 
@@ -119,11 +131,10 @@ fn find_best_version(encoded: &Encoded, options: &SplitOptions) -> Result<QrsNee
             continue;
         };
 
-        if qrs_needed.count < options.min_split_number {
-            continue;
-        }
-
-        if qrs_needed.count > options.max_split_number {
+        // skip if not in the range for min and max split
+        if qrs_needed_count < options.min_split_number
+            || qrs_needed_count > options.max_split_number
+        {
             continue;
         }
 
@@ -151,6 +162,24 @@ fn find_best_version(encoded: &Encoded, options: &SplitOptions) -> Result<QrsNee
     }
 
     Ok(best)
+}
+
+impl SplitOptions {
+    fn validate(&self) -> Result<(), SplitError> {
+        if self.min_split_number > self.max_split_number {
+            return Err(SplitError::InvalidSplitRange);
+        }
+
+        if self.min_version > self.max_version {
+            return Err(SplitError::InvalidVersionRange);
+        }
+
+        if self.min_split_number < 1 {
+            return Err(SplitError::MinSplitTooSmall);
+        }
+
+        Ok(())
+    }
 }
 
 #[cfg(test)]

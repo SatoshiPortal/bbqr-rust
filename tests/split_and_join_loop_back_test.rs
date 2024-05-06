@@ -1,5 +1,5 @@
 use bbqr::{Encoding, FileType, Joined, Split, SplitOptions, Version};
-// use pretty_assertions::assert_eq;
+use pretty_assertions::assert_eq;
 
 #[test]
 fn test_loopback() {
@@ -74,8 +74,6 @@ fn test_min_split() {
         )
         .unwrap();
 
-        println!("min_split: {}, split {}", min_split, split.parts.len());
-
         assert!(split.parts.len() >= min_split);
 
         let joined = Joined::try_from_parts(split.parts).unwrap();
@@ -84,52 +82,89 @@ fn test_min_split() {
     }
 }
 
-// #[test]
-// fn test_edge27() {
-//     let encodings = ['H', '2', 'Z'];
-//     let sizes = 1060..1080;
-//     let low_ents = [true, false];
-//
-//     for &encoding in &encodings {
-//         for size in sizes.clone() {
-//             for &low_ent in &low_ents {
-//                 let data = if low_ent {
-//                     vec![b'A'; size]
-//                 } else {
-//                     (0..size).map(|_| rand::random::<u8>()).collect()
-//                 };
-//
-//                 let (vers, parts) = split_qrs(&data, "T", Some(encoding), 1, 27).unwrap();
-//                 assert_eq!(vers, 27);
-//                 let count = parts.len();
-//
-//                 match encoding {
-//                     'H' => assert_eq!(count, if size <= 1062 { 1 } else { 2 }),
-//                     'Z' => {
-//                         assert_eq!(count, 1);
-//                         if low_ent {
-//                             assert!(parts[0].len() < 100);
-//                         }
-//                     }
-//                     '2' => assert_eq!(count, 1),
-//                     _ => unreachable!(),
-//                 }
-//
-//                 let (_, readback) = join_qrs(&parts).unwrap();
-//                 assert_eq!(readback, data);
-//             }
-//         }
-//     }
-// }
+#[test]
+fn test_edge27() {
+    let encodings = [Encoding::Hex, Encoding::Base32, Encoding::Zlib];
+    let sizes = 1060..1080;
+    let low_entropies = [true, false];
 
-// #[test]
-// fn test_maxsize() {
-//     let encodings = ['H', '2'];
-//
-//     for &encoding in &encodings {
-//         let nc = 4296 - 8;
-//         let pkt_size = match encoding {
-//             'H' => nc / 2,
-//             '2' => nc * 5 / 8,
-//             _ => unreachable!(),
-// }
+    for encoding in &encodings {
+        for size in sizes.clone() {
+            for &low_ent in &low_entropies {
+                let data = if low_ent {
+                    vec![b'A'; size]
+                } else {
+                    (0..size).map(|_| rand::random::<u8>()).collect()
+                };
+
+                let split = Split::try_from_data(
+                    &data,
+                    FileType::Transaction,
+                    SplitOptions {
+                        encoding: *encoding,
+                        min_split_number: 1,
+                        max_split_number: 2,
+                        min_version: Version::V27,
+                        max_version: Version::V27,
+                    },
+                )
+                .unwrap();
+
+                let parts = &split.parts;
+                let count = parts.len();
+
+                match split.encoding {
+                    Encoding::Hex => assert_eq!(count, if size <= 1062 { 1 } else { 2 }),
+                    Encoding::Zlib => {
+                        assert_eq!(count, 1);
+                        if low_ent {
+                            assert!(parts[0].len() < 100);
+                        }
+                    }
+                    Encoding::Base32 => assert_eq!(count, 1),
+                }
+
+                let joined = Joined::try_from_parts(split.parts).unwrap();
+
+                assert_eq!(joined.data, data);
+            }
+        }
+    }
+}
+
+#[test]
+fn test_maxsize() {
+    let encodings = [Encoding::Hex, Encoding::Base32];
+
+    for encoding in &encodings {
+        // version 40 capacity in chars, less header
+        let nc = 4296 - 8;
+
+        let packet_size = match encoding {
+            Encoding::Hex => nc / 2,
+            Encoding::Base32 => nc * 5 / 8,
+            _ => unreachable!(),
+        };
+
+        let nparts = usize::from_str_radix("ZZ", 36).unwrap(); // 1295
+        let data: Vec<u8> = (0..packet_size * nparts).map(|_| rand::random()).collect();
+
+        let split = Split::try_from_data(
+            &data,
+            FileType::Transaction,
+            SplitOptions {
+                encoding: *encoding,
+                ..Default::default()
+            },
+        )
+        .unwrap();
+
+        assert_eq!(split.version, Version::V40);
+
+        let count = split.parts.len();
+        assert_eq!(count, nparts);
+
+        let joined = Joined::try_from_parts(split.parts).unwrap();
+        assert_eq!(joined.data, data);
+    }
+}
