@@ -80,10 +80,6 @@ fn split_qrs(
         return Err(SplitError::Empty);
     }
 
-    if options.max_split_number > MAX_PARTS {
-        return Err(SplitError::MaxSplitSizeTooLarge(options.max_split_number));
-    }
-
     // validate the options
     options.validate()?;
 
@@ -166,6 +162,10 @@ fn find_best_version(encoded: &Encoded, options: &SplitOptions) -> Result<QrsNee
 
 impl SplitOptions {
     fn validate(&self) -> Result<(), SplitError> {
+        if self.max_split_number > MAX_PARTS {
+            return Err(SplitError::MaxSplitSizeTooLarge(self.max_split_number));
+        }
+
         if self.min_split_number > self.max_split_number {
             return Err(SplitError::InvalidSplitRange);
         }
