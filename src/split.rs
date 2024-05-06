@@ -40,12 +40,15 @@ pub struct Split {
 
 #[derive(Debug, Clone)]
 pub struct SplitOptions {
+    /// The encoding to use for the splits, defaults to Zlib
     pub encoding: Encoding,
-    /// min number of parts to split into
+    /// The minimum number of parts to split to, default: 1
     pub min_split_number: usize,
-    /// max number of parts to split into
+    /// The maximum number of parts to split to, default: 1295
     pub max_split_number: usize,
+    /// The minimum QR version to split to, default: V01
     pub min_version: Version,
+    /// The maximum QR version to split to, default: V40
     pub max_version: Version,
 }
 
@@ -74,7 +77,7 @@ impl Split {
     pub fn generate_qr_codes(&self) -> Result<Vec<fast_qr::QRCode>, fast_qr::qr::QRCodeError> {
         use fast_qr::{qr::QRCodeError, QRBuilder, QRCode, Version, ECL};
 
-        // conver version to fast_qr version
+        // convert version to fast_qr version
         let version = Version::from(self.version);
 
         let qrs = self

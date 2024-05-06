@@ -36,8 +36,15 @@ pub enum JoinError {
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Joined {
+    /// Encoding that was used in the QR codes, all parts must have the same encoding
+    /// The encoding is used to decode the data, and its stated in the header of each split part
     pub encoding: Encoding,
+
+    /// File type that was used in the QR codes, all parts must have the same file type
+    /// The file type is determined by the header
     pub file_type: crate::file_type::FileType,
+
+    /// The data that was encoded in the QR codes
     pub data: Vec<u8>,
 }
 

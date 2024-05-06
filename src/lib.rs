@@ -1,5 +1,5 @@
 //! # BBQr - Protocol for spliting and joining large data into multiple QR codes
-//! [BBQr Protocol](https://github.com/coinkite/BBQr/blob/master/BBQr.md)
+//! Rust Implementation of the [BBQr Protocol](https://github.com/coinkite/BBQr/blob/master/BBQr.md) spec
 //!
 //! ## Usage
 //!
@@ -26,15 +26,15 @@
 //! // print out each of the parts
 //! println!("{:#?}", split.parts);
 //!
-//! // generate svgs
+//! // generate the qr codes
 //! let qr_codes = split.generate_qr_codes();
 //! ```
 //!
 //! ### Join split QR codes
 //!
 //! ```ignore
-//! let parts: Vec<String> = // get the parts from somewhere
-//!
+//! // get the parts from somewhere
+//! let parts: Vec<String> = ...
 //! // join the parts
 //! let joined = Joined::try_from_parts(parts);
 //!
@@ -50,18 +50,28 @@
 pub(crate) mod consts;
 pub(crate) mod decode;
 pub(crate) mod encode;
-pub(crate) mod error;
 pub(crate) mod file_type;
 pub(crate) mod header;
 pub(crate) mod join;
 pub(crate) mod qr;
 pub(crate) mod split;
 
+/// Joined data structure, includes the encoding, file type, and raw data in bytes
 pub type Joined = join::Joined;
+
+/// The split Data structure, includes the version, parts, and encoding
 pub type Split = split::Split;
+
+/// Split options, has a default implementation but you can customize it.
+///
+/// Set the qr version, encoding, and min/max split number
 pub type SplitOptions = split::SplitOptions;
 
+/// The encoding to use for the data, HEX, Base32, or Zlib, best to default Zlib
 pub type Encoding = encode::Encoding;
+
+/// The file type, currently only supports UnicodeText, Transaction, PSBT, Binary, and CBOR
 pub type FileType = file_type::FileType;
 
+/// The version of the QR code, from V01 to V40
 pub type Version = qr::Version;
