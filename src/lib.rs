@@ -36,7 +36,7 @@
 //! // get the parts from somewhere
 //! let parts: Vec<String> = ...
 //! // join the parts
-//! let joined = Joined::try_from_parts(parts);
+//! let joined = Joined::try_from_parts(parts).expect("Failed to join parts");
 //!
 //! /// joined.data has the raw bytes
 //! match &joined.encoding {

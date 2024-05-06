@@ -40,7 +40,7 @@ let qr_codes = split.generate_qr_codes();
 let parts: Vec<String> = "...";
 
 // join the parts
-let joined = Joined::try_from_parts(parts);
+let joined = Joined::try_from_parts(parts).expect("Failed to join");
 
 /// joined.data has the raw bytes
 match &joined.encoding {
