@@ -197,6 +197,57 @@ impl Version {
     }
 }
 
+/// Convert between our type and fast-qr version type
+#[cfg(feature = "qr-codes")]
+impl From<Version> for fast_qr::Version {
+    fn from(version: Version) -> Self {
+        use fast_qr::Version as FastQrVersion;
+
+        match version {
+            Version::V01 => FastQrVersion::V01,
+            Version::V02 => FastQrVersion::V02,
+            Version::V03 => FastQrVersion::V03,
+            Version::V04 => FastQrVersion::V04,
+            Version::V05 => FastQrVersion::V05,
+            Version::V06 => FastQrVersion::V06,
+            Version::V07 => FastQrVersion::V07,
+            Version::V08 => FastQrVersion::V08,
+            Version::V09 => FastQrVersion::V09,
+            Version::V10 => FastQrVersion::V10,
+            Version::V11 => FastQrVersion::V11,
+            Version::V12 => FastQrVersion::V12,
+            Version::V13 => FastQrVersion::V13,
+            Version::V14 => FastQrVersion::V14,
+            Version::V15 => FastQrVersion::V15,
+            Version::V16 => FastQrVersion::V16,
+            Version::V17 => FastQrVersion::V17,
+            Version::V18 => FastQrVersion::V18,
+            Version::V19 => FastQrVersion::V19,
+            Version::V20 => FastQrVersion::V20,
+            Version::V21 => FastQrVersion::V21,
+            Version::V22 => FastQrVersion::V22,
+            Version::V23 => FastQrVersion::V23,
+            Version::V24 => FastQrVersion::V24,
+            Version::V25 => FastQrVersion::V25,
+            Version::V26 => FastQrVersion::V26,
+            Version::V27 => FastQrVersion::V27,
+            Version::V28 => FastQrVersion::V28,
+            Version::V29 => FastQrVersion::V29,
+            Version::V30 => FastQrVersion::V30,
+            Version::V31 => FastQrVersion::V31,
+            Version::V32 => FastQrVersion::V32,
+            Version::V33 => FastQrVersion::V33,
+            Version::V34 => FastQrVersion::V34,
+            Version::V35 => FastQrVersion::V35,
+            Version::V36 => FastQrVersion::V36,
+            Version::V37 => FastQrVersion::V37,
+            Version::V38 => FastQrVersion::V38,
+            Version::V39 => FastQrVersion::V39,
+            Version::V40 => FastQrVersion::V40,
+        }
+    }
+}
+
 #[cfg(test)]
 mod test {
     use super::*;
