@@ -10,16 +10,20 @@
 //!
 //! let data: &[u8] = b"Hello, World!, but much larger";
 //!
-//! // split the data using zlib encoding
+//! // split the data using zlib encoding, and default options split the data using default options
+//! let split = Split::try_from_data(data, FileType::UnicodeText, Default::default())
+//!    .expect("Failed to split data");
+//!
+//! // or split the data using zlib encoding, and custom options
 //! let split = Split::try_from_data(
 //!     data,
 //!     FileType::UnicodeText,
 //!     SplitOptions {
 //!         encoding: Encoding::Zlib,
-//!         min_split_number: 1,
-//!         min_version: Version::V01,
-//!         max_version: Version::V40,
-//!         ..Default::default()
+//!         min_split_number: 2,
+//!         max_split_number: 100,
+//!         min_version: Version::V03,
+//!         max_version: Version::V30,
 //!     },
 //! ).expect("Failed to split data");
 //!
