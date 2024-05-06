@@ -1,9 +1,18 @@
-pub mod consts;
-pub mod decode;
-pub mod encoding;
-pub mod error;
-pub mod file_type;
-pub mod header;
-pub mod join;
+pub(crate) mod consts;
+pub(crate) mod decode;
+pub(crate) mod encode;
+pub(crate) mod error;
+pub(crate) mod file_type;
+pub(crate) mod header;
+pub(crate) mod join;
+pub(crate) mod qr;
+pub(crate) mod split;
 
 pub type Joined = join::Joined;
+pub type Split = split::Split;
+pub type SplitOptions = split::SplitOptions;
+
+pub type Encoding = encode::Encoding;
+pub type FileType = file_type::FileType;
+
+pub type Version = qr::Version;

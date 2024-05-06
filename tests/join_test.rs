@@ -1,4 +1,4 @@
-use bbqr::{file_type::FileType, Joined};
+use bbqr::{FileType, Joined};
 
 #[test]
 fn test_real_scan() {

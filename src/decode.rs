@@ -1,8 +1,11 @@
+//! Join and decode parts of a string using the given encoding.
 use std::io::Read as _;
 
-use crate::encoding::Encoding;
 use data_encoding::BASE32_NOPAD;
 use data_encoding::HEXUPPER;
+
+use crate::Encoding;
+
 
 #[derive(Debug, thiserror::Error, PartialEq, Eq)]
 pub enum DecodeError {

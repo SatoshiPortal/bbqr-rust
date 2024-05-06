@@ -21,6 +21,16 @@ impl FileType {
         }
     }
 
+    pub fn as_byte(&self) -> u8 {
+        match self {
+            FileType::Psbt => b'P',
+            FileType::Transaction => b'T',
+            FileType::Json => b'J',
+            FileType::Cbor => b'C',
+            FileType::UnicodeText => b'U',
+        }
+    }
+
     pub fn is_known_filetype(byte: u8) -> bool {
         Self::from_byte(byte).is_some()
     }
