@@ -13,6 +13,7 @@ name = "bbqr"
 version = "0.1.0"
 dependencies = [
  "data-encoding",
+ "fast_qr",
  "flate2",
  "pretty_assertions",
  "radix_fmt",
@@ -61,6 +62,12 @@ name = "diff"
 version = "0.1.13"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "56254986775e3233ffa9c4d7d3faaf6d36a2c09d30b20687e9f88bc8bafc16c8"
+
+[[package]]
+name = "fast_qr"
+version = "0.12.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "2e5713474c9ee80afc27203d07b5b2600ea526ac9c45d7f9345264d032ae9375"
 
 [[package]]
 name = "flate2"
