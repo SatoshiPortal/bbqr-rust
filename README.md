@@ -37,7 +37,8 @@ let qr_codes = split.generate_qr_codes();
 
 ```rust
 // get the parts from somewhere
-let parts: Vec<String> = ...
+let parts: Vec<String> = "...";
+
 // join the parts
 let joined = Joined::try_from_parts(parts);
 
