@@ -51,6 +51,8 @@
 //! }
 //! ```
 
+pub mod error;
+
 pub(crate) mod consts;
 pub(crate) mod decode;
 pub(crate) mod encode;
