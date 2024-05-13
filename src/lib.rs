@@ -57,6 +57,7 @@
 //! }
 //! ```
 
+pub mod continuous_join;
 pub mod decode;
 pub mod encode;
 pub mod file_type;

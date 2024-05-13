@@ -1,6 +1,6 @@
 [package]
 name = "bbqr"
-version = "0.2.0"
+version = "0.3.0"
 edition = "2021"
 
 [lib]
@@ -27,6 +27,9 @@ flate2 = { version ="1.0", features = ["any_zlib", "zlib-ng"], default-features 
 
 # generate qr code
 fast_qr = { version ="0.12.0", features = ["svg"], optional = true } 
+
+# logging
+log = "0.4.21"
 
 [dev-dependencies]
 # for testing

@@ -74,14 +74,7 @@ fn join_qrs(input_parts: Vec<String>) -> Result<(Header, Vec<u8>), JoinError> {
             continue;
         }
 
-        // get the index of the the current part
-        // already checked in get_and_verify_headers that the header is long enough
-        let index = usize::from_str_radix(&part[6..8], 36).unwrap();
-
-        // more parts than the header says, error
-        if index >= header.num_parts {
-            return Err(JoinError::TooManyParts(header.num_parts, index + 1));
-        }
+        let index = get_index_from_part(&part, &header)?;
 
         let current_part_content = &orderered_parts[index];
         let part_data = &part[8..];
@@ -126,7 +119,7 @@ fn get_and_verify_headers(parts: &[String]) -> Result<Header, JoinError> {
 
     // verify that all the headers are the same
     for part in parts.iter().skip(1) {
-        if part.is_empty() {
+        if part.trim().is_empty() {
             continue;
         }
 
@@ -140,6 +133,19 @@ fn get_and_verify_headers(parts: &[String]) -> Result<Header, JoinError> {
     }
 
     Ok(header)
+}
+
+pub(crate) fn get_index_from_part(part: &str, header: &Header) -> Result<usize, JoinError> {
+    // get the index of the the current part
+    // already checked in get_and_verify_headers that the header is long enough
+    let index = usize::from_str_radix(&part[6..8], 36).unwrap();
+
+    // more parts than the header says, error
+    if index >= header.num_parts {
+        return Err(JoinError::TooManyParts(header.num_parts, index + 1));
+    };
+
+    Ok(index)
 }
 
 #[cfg(test)]
