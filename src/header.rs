@@ -25,6 +25,8 @@ pub enum HeaderParseError {
     InvalidHeaderParts(String),
 }
 
+/// The header structure, includes the encoding, file type, and number of parts
+/// Each split part has an identical header that contains the encoding, file type, and number of parts
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct Header {
     pub encoding: Encoding,
@@ -47,7 +49,8 @@ impl Display for Header {
 }
 
 impl Header {
-    pub fn new(encoding: Encoding, file_type: FileType, num_parts: usize) -> Self {
+    /// Create a new header with the given encoding, file type, and number of parts
+    pub(crate) fn new(encoding: Encoding, file_type: FileType, num_parts: usize) -> Self {
         Self {
             encoding,
             file_type,
@@ -55,7 +58,8 @@ impl Header {
         }
     }
 
-    pub fn try_from_str(header_str: &str) -> Result<Self, HeaderParseError> {
+    /// Try to parse a header from a string
+    pub(crate) fn try_from_str(header_str: &str) -> Result<Self, HeaderParseError> {
         if header_str.is_empty() {
             return Err(HeaderParseError::Empty);
         }
