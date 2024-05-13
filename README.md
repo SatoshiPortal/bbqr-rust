@@ -9,7 +9,13 @@ https://github.com/coinkite/BBQr/blob/master/BBQr.md
 ### Split large data up
 
 ```rust
-use bbqr::{Encoding, FileType, Split, SplitOptions, Version};
+use bbqr::{
+   encode::Encoding,
+   file_type::FileType,
+   join::Joined,
+   qr::Version,
+   split::{Split, SplitOptions},
+};
 
 let data: &[u8] = b"Hello, World!, but much larger";
 
