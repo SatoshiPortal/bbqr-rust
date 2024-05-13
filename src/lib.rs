@@ -56,6 +56,35 @@
 //!   }
 //! }
 //! ```
+//! ### Join QR codes one by one
+//! ```rust
+//! use bbqr::{continuous_join::{ContinuousJoiner, ContinuousJoinResult} };
+//!
+//! // create new continuous joiner
+//! let mut continuous_join = ContinuousJoiner::new();
+//!
+//! let parts = vec![];
+//!
+//! // add each part to the continuous joiner
+//! for part in parts {
+//!   let join_result = continuous_join.add_part(part).expect("Failed to add part");
+//!
+//!   match join_result {
+//!     ContinuousJoinResult::NotStarted => println!("Not started, part was empty"),
+//!     
+//!     ContinuousJoinResult::InProgress{parts_left} => {
+//!       // print out the number of parts left
+//!       println!("Parts left: {}", parts_left);
+//!     }
+//!     
+//!     // if the part is the last part, then the data is ready
+//!     ContinuousJoinResult::Complete(joined) => {
+//!       // the data is ready, do something with it
+//!     }
+//!   }
+//! }
+//!
+//! ```
 
 pub mod continuous_join;
 pub mod decode;
