@@ -1,4 +1,10 @@
-use bbqr::{Encoding, FileType, Joined, Split, SplitOptions, Version};
+use bbqr::{
+    encode::Encoding,
+    file_type::FileType,
+    join::Joined,
+    qr::Version,
+    split::{Split, SplitOptions},
+};
 use pretty_assertions::assert_eq;
 
 #[test]

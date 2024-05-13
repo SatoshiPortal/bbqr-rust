@@ -3,8 +3,9 @@
 use crate::{
     consts::HEADER_LENGTH,
     decode,
+    encode::Encoding,
+    file_type::FileType,
     header::{Header, HeaderParseError},
-    Encoding,
 };
 
 #[derive(Debug, thiserror::Error, PartialEq, Eq)]
@@ -34,6 +35,7 @@ pub enum JoinError {
     DecodeError(#[from] decode::DecodeError),
 }
 
+/// Joined data structure, includes the encoding, file type, and raw data in bytes
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Joined {
     /// Encoding that was used in the QR codes, all parts must have the same encoding
@@ -42,7 +44,7 @@ pub struct Joined {
 
     /// File type that was used in the QR codes, all parts must have the same file type
     /// The file type is determined by the header
-    pub file_type: crate::file_type::FileType,
+    pub file_type: FileType,
 
     /// The data that was encoded in the QR codes
     pub data: Vec<u8>,
@@ -141,8 +143,9 @@ fn get_and_verify_headers(parts: &[String]) -> Result<Header, JoinError> {
 
 #[cfg(test)]
 mod tests {
+    use crate::{encode::Encoding, file_type::FileType};
+
     use super::*;
-    use crate::{Encoding, FileType};
 
     #[test]
     fn test_verify_header() {

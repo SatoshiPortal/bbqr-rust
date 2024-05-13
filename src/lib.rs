@@ -6,7 +6,13 @@
 //! ### Split large data up
 //!
 //! ```rust
-//! use bbqr::{Encoding, FileType, Split, SplitOptions, Version};
+//! use bbqr::{
+//!    encode::Encoding,
+//!    file_type::FileType,
+//!    join::Joined,
+//!    qr::Version,
+//!    split::{Split, SplitOptions},
+//! };
 //!
 //! let data: &[u8] = b"Hello, World!, but much larger";
 //!
@@ -20,7 +26,7 @@
 //!     FileType::UnicodeText,
 //!     SplitOptions {
 //!         encoding: Encoding::Zlib,
-//!         min_split_number: 2,
+//!         min_split_number: 1,
 //!         max_split_number: 100,
 //!         min_version: Version::V03,
 //!         max_version: Version::V30,
@@ -51,33 +57,12 @@
 //! }
 //! ```
 
-pub mod error;
+pub mod decode;
+pub mod encode;
+pub mod file_type;
+pub mod join;
+pub mod qr;
+pub mod split;
 
 pub(crate) mod consts;
-pub(crate) mod decode;
-pub(crate) mod encode;
-pub(crate) mod file_type;
 pub(crate) mod header;
-pub(crate) mod join;
-pub(crate) mod qr;
-pub(crate) mod split;
-
-/// Joined data structure, includes the encoding, file type, and raw data in bytes
-pub type Joined = join::Joined;
-
-/// The split Data structure, includes the version, parts, and encoding
-pub type Split = split::Split;
-
-/// Split options, has a default implementation but you can customize it.
-///
-/// Set the qr version, encoding, and min/max split number
-pub type SplitOptions = split::SplitOptions;
-
-/// The encoding to use for the data, HEX, Base32, or Zlib, best to default Zlib
-pub type Encoding = encode::Encoding;
-
-/// The file type, currently only supports UnicodeText, Transaction, PSBT, Binary, and CBOR
-pub type FileType = file_type::FileType;
-
-/// The version of the QR code, from V01 to V40
-pub type Version = qr::Version;

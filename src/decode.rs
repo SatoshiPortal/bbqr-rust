@@ -4,7 +4,7 @@ use std::io::Read as _;
 use data_encoding::BASE32_NOPAD;
 use data_encoding::HEXUPPER;
 
-use crate::Encoding;
+use crate::encode::Encoding;
 
 #[derive(Debug, thiserror::Error, PartialEq, Eq)]
 pub enum DecodeError {
@@ -18,7 +18,10 @@ pub enum DecodeError {
     UnableToInflateZlib(String),
 }
 
-pub fn decode_ordered_parts(parts: &[String], encoding: Encoding) -> Result<Vec<u8>, DecodeError> {
+pub(crate) fn decode_ordered_parts(
+    parts: &[String],
+    encoding: Encoding,
+) -> Result<Vec<u8>, DecodeError> {
     let decoded: Vec<u8> = match encoding {
         Encoding::Hex => parts
             .iter()

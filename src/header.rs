@@ -2,7 +2,7 @@ use std::fmt::{self, Display, Formatter};
 
 use radix_fmt::radix;
 
-use crate::{consts::HEADER_LENGTH, Encoding, FileType};
+use crate::{consts::HEADER_LENGTH, encode::Encoding, file_type::FileType};
 
 #[derive(Debug, thiserror::Error, PartialEq, Eq)]
 pub enum HeaderParseError {
@@ -112,8 +112,8 @@ pub(crate) fn int_to_padded_base_36(num: usize) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::Encoding;
-    use crate::FileType;
+    use crate::encode::Encoding;
+    use crate::file_type::FileType;
     use pretty_assertions::assert_eq;
 
     #[test]

@@ -1,6 +1,7 @@
 use std::fmt::{self, Display, Formatter};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+/// The file type, currently only supports UnicodeText, Transaction, PSBT, Binary, and CBOR
 pub enum FileType {
     Psbt,
     Transaction,

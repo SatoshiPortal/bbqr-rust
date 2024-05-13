@@ -9,6 +9,7 @@ use crate::{
 };
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+/// The encoding to use for the data, HEX, Base32, or Zlib, best to default Zlib
 pub enum Encoding {
     Hex,
     Base32,

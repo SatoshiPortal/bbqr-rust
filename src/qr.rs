@@ -3,6 +3,7 @@ use std::cmp::Ordering;
 use crate::consts::QR_DATA_CAPACITY;
 
 /// Enum containing all possible `QRCode` versions, taken from fast_qr crate
+/// The version of the QR code, from V01 to V40
 #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord)]
 pub enum Version {
     /// Version n°01

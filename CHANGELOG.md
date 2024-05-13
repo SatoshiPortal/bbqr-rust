@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [0.2.0] - 2024-05-13
+
 ## [0.1.1] - 2024-05-12
 
 - Exposes error types publicly

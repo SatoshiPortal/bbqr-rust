@@ -1,10 +1,9 @@
 use crate::{
     consts::MAX_PARTS,
-    encode::{EncodeError, Encoded},
+    encode::{EncodeError, Encoded, Encoding},
     file_type::FileType,
     header::{int_to_padded_base_36, Header},
     qr::{QrsNeeded, Version},
-    Encoding,
 };
 
 #[derive(Debug, thiserror::Error, PartialEq, Eq)]
@@ -31,6 +30,7 @@ pub enum SplitError {
     EncodeError(#[from] EncodeError),
 }
 
+/// The split Data structure, includes the version, parts, and encoding
 #[derive(Debug, Clone)]
 pub struct Split {
     pub version: Version,
@@ -38,6 +38,9 @@ pub struct Split {
     pub encoding: Encoding,
 }
 
+/// Split options, has a default implementation but you can customize it.
+///
+/// Set the qr version, encoding, and min/max split number
 #[derive(Debug, Clone)]
 pub struct SplitOptions {
     /// The encoding to use for the splits, defaults to Zlib
