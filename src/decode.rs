@@ -6,6 +6,7 @@ use data_encoding::HEXUPPER;
 
 use crate::encode::Encoding;
 
+/// Errors that can occur when decoding data
 #[derive(Debug, thiserror::Error, PartialEq, Eq)]
 pub enum DecodeError {
     #[error("Unable to decode hex part: {0}, error: {1}")]

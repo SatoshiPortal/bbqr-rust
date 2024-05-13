@@ -1,9 +1,12 @@
+//! The header module contains the header structure and parsing logic
+
 use std::fmt::{self, Display, Formatter};
 
 use radix_fmt::radix;
 
 use crate::{consts::HEADER_LENGTH, encode::Encoding, file_type::FileType};
 
+/// Errors that can occur when parsing a header
 #[derive(Debug, thiserror::Error, PartialEq, Eq)]
 pub enum HeaderParseError {
     #[error("No data found")]

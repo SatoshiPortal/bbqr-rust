@@ -1,4 +1,4 @@
-//! QR code joining
+//! Join multiple QR codes into one large piece of data
 
 use crate::{
     consts::HEADER_LENGTH,
@@ -8,6 +8,7 @@ use crate::{
     header::{Header, HeaderParseError},
 };
 
+/// Errors that can occur when joining data
 #[derive(Debug, thiserror::Error, PartialEq, Eq)]
 pub enum JoinError {
     #[error("No data found")]

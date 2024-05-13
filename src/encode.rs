@@ -1,3 +1,4 @@
+//! Encoding of data for QR codes, currently supports HEX, Base32, or Zlib
 use std::io::Write as _;
 
 use data_encoding::{BASE32_NOPAD, HEXUPPER};
@@ -8,8 +9,8 @@ use crate::{
     qr::{QrsNeeded, Version},
 };
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 /// The encoding to use for the data, HEX, Base32, or Zlib, best to default Zlib
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Encoding {
     Hex,
     Base32,
@@ -47,6 +48,7 @@ impl Encoding {
     }
 }
 
+/// Errors that can occur when encoding data
 #[derive(Debug, thiserror::Error, PartialEq, Eq)]
 pub enum EncodeError {
     #[error("No data to encode")]
@@ -56,8 +58,9 @@ pub enum EncodeError {
     CompressionError(String),
 }
 
+/// The encoded data structure, includes the encoding and the data
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub struct Encoded {
+pub(crate) struct Encoded {
     pub encoding: Encoding,
     pub data: String,
 }

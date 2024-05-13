@@ -1,3 +1,5 @@
+//! File type enum for the different file types supported by the BBQr standard
+
 use std::fmt::{self, Display, Formatter};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]

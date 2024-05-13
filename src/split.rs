@@ -1,3 +1,5 @@
+//! Split data into multiple parts for QR codes
+
 use crate::{
     consts::MAX_PARTS,
     encode::{EncodeError, Encoded, Encoding},
@@ -6,6 +8,7 @@ use crate::{
     qr::{QrsNeeded, Version},
 };
 
+/// Errors that can occur when splitting data
 #[derive(Debug, thiserror::Error, PartialEq, Eq)]
 pub enum SplitError {
     #[error("No data found")]

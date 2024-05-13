@@ -1,3 +1,4 @@
+//! Module for QR code related types, including the `Version` and `ErrorCorrectionLevel`
 use std::cmp::Ordering;
 
 use crate::consts::QR_DATA_CAPACITY;
