@@ -60,9 +60,9 @@
 pub mod decode;
 pub mod encode;
 pub mod file_type;
+pub mod header;
 pub mod join;
 pub mod qr;
 pub mod split;
 
 pub(crate) mod consts;
-pub(crate) mod header;
