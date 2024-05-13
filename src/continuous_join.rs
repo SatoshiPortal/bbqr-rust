@@ -1,9 +1,7 @@
-//! This module contains the `ContinuousJoiner` struct which can be used to add parts of a QR code piece by piece
-//! and join them together into one large piece of data.
+//! Join the QR code parts one by one
 //!
 //! This is useful in a situation where you are receiving parts of a QR code over time, and
 //! you don't have another way of knowing if you have received all the parts.
-//!
 
 use log::{debug, warn};
 

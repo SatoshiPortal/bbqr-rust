@@ -57,6 +57,7 @@
 //! }
 //! ```
 //! ### Join QR codes one by one
+//!
 //! ```rust
 //! use bbqr::{continuous_join::{ContinuousJoiner, ContinuousJoinResult} };
 //!
