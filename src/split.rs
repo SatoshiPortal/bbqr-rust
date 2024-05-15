@@ -93,6 +93,7 @@ impl Split {
                 let qr: QRCode = QRBuilder::new(part.as_bytes())
                     .ecl(ECL::L)
                     .version(version)
+                    .mode(fast_qr::Mode::Alphanumeric)
                     .build()?;
 
                 Ok::<QRCode, QRCodeError>(qr)
