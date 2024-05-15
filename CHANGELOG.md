@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+## [0.3.1] - 2024-05-15
+
+- Update `fast_qr` dep, and force Alphanumeric encoding when making QR code with `fast_qr`
+
 ## [0.3.0] - 2024-05-13
 
 - Add ability to add QR codes one by one and get the final result
