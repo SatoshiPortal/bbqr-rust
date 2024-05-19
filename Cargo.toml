@@ -23,7 +23,7 @@ data-encoding = "2.6.0"
 radix_fmt = "1.0.0"
 
 # zlib compression
-flate2 = { version = "1.0", features = ["any_zlib", "zlib-ng"], default-features = false }
+flate2 = { version = "1.0", features = ["any_zlib", "zlib"], default-features = false }
 
 # generate qr code
 fast_qr = { version = "0.12.5", features = ["svg"], optional = true } 
