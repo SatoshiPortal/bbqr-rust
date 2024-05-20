@@ -6,6 +6,7 @@
 use log::{debug, warn};
 
 use crate::{
+    consts::HEADER_LENGTH,
     decode,
     header::{Header, HeaderParseError},
     join::{self, JoinError, Joined},
@@ -110,12 +111,14 @@ impl ContinuousJoiner {
 
                 let index = join::get_index_from_part(&part, &header)?;
 
-                let part_data = &part[8..];
+                let part_data = &part[HEADER_LENGTH..];
                 parts[index] = part_data.to_string();
 
                 let parts_left = header.num_parts - 1;
 
                 // If all parts have been joined, return the joined data
+                // This would happen if there is only one part, in which case state goes
+                // directly from initial -> complete
                 let join_state = if parts_left == 0 {
                     let data = decode::decode_ordered_parts(&parts, header.encoding)?;
                     let joined = Joined {
@@ -159,28 +162,31 @@ impl ContinuousJoiner {
                 let index = join::get_index_from_part(&part, &part_header)?;
                 let current_data = &in_progress.data[index];
 
+                // The data for this part is empty.
+                // Which means this is the first time we are seeing data for this part.
+                // Therefore we can decrement the number of parts left to join.
                 if current_data.is_empty() {
                     debug!("new part added");
 
-                    // decrement the number of parts left to join
                     in_progress.parts_left -= 1;
                 }
 
-                let part_data = &part[8..];
+                let part_data = &part[HEADER_LENGTH..];
                 if !current_data.is_empty() && current_data != part_data {
                     return Err(JoinError::DuplicatePartWrongContent(index).into());
                 }
 
-                // save the part data
+                // save the part data, if its not already saved
                 if current_data.is_empty() {
                     // store the part data in the correct order
                     in_progress.data[index] = part_data.to_string();
                 }
 
                 // If all parts have been joined, return the joined data
-                if in_progress.parts_left == 0 {
+                let join_state = if in_progress.parts_left == 0 {
                     let data =
                         decode::decode_ordered_parts(&in_progress.data, part_header.encoding)?;
+
                     let joined = Joined {
                         encoding: part_header.encoding,
                         file_type: part_header.file_type,
@@ -190,11 +196,12 @@ impl ContinuousJoiner {
                     let internal_state = InternalState::Complete(joined.clone());
                     self.internal_state = internal_state;
 
-                    return Ok(ContinuousJoinResult::Complete(joined));
-                }
-
-                let join_state = ContinuousJoinResult::InProgress {
-                    parts_left: in_progress.parts_left,
+                    ContinuousJoinResult::Complete(joined)
+                } else {
+                    // else return the in progress state
+                    ContinuousJoinResult::InProgress {
+                        parts_left: in_progress.parts_left,
+                    }
                 };
 
                 Ok(join_state)

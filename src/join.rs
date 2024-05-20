@@ -77,7 +77,7 @@ fn join_qrs(input_parts: Vec<String>) -> Result<(Header, Vec<u8>), JoinError> {
         let index = get_index_from_part(&part, &header)?;
 
         let current_part_content = &orderered_parts[index];
-        let part_data = &part[8..];
+        let part_data = &part[HEADER_LENGTH..];
 
         if !current_part_content.is_empty() && current_part_content != part_data {
             return Err(JoinError::DuplicatePartWrongContent(index));
