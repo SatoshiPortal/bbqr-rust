@@ -159,7 +159,7 @@ impl ContinuousJoiner {
                 let index = join::get_index_from_part(&part, &part_header)?;
                 let current_data = &in_progress.data[index];
 
-                if !current_data.is_empty() {
+                if current_data.is_empty() {
                     debug!("new part added");
 
                     // decrement the number of parts left to join
@@ -298,14 +298,29 @@ B$ZU0803CCSQ43RBC6FJ4TBCPCSZDLNPFFXJTEKU45Z34FO2MBVA4U32BF7VVFCH4X73N3CS53NZAUBO
                         ContinuousJoinResult::InProgress { parts_left: 7 }
                     );
                 }
-                _ => {}
+                2..=7 => {
+                    assert_eq!(
+                        loop_result,
+                        ContinuousJoinResult::InProgress {
+                            parts_left: 8 - index
+                        }
+                    );
+                }
+                8 => {
+                    assert_eq!(
+                        loop_result,
+                        ContinuousJoinResult::InProgress { parts_left: 1 }
+                    );
+                }
+                _ => {
+                    assert!(matches!(loop_result, ContinuousJoinResult::Complete(_)));
+                }
             }
 
             result = Some(loop_result);
         }
 
         let result = result.unwrap();
-        println!("{:?}", result);
 
         assert!(matches!(result, ContinuousJoinResult::Complete(_)));
 
