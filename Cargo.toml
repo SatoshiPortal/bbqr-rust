@@ -2,6 +2,16 @@
 name = "bbqr"
 version = "0.3.1"
 edition = "2021"
+license = "MIT"
+rust-version = "1.68"
+readme = "README.md"
+homepage = "https://github.com/SatoshiPortal/bbqr-rust"
+repository = "https://github.com/SatoshiPortal/bbqr-rust"
+documentation = "https://github.com/SatoshiPortal/bbqr-rust"
+categories = ["QR"]
+keywords = ["BBQr", "coinkite", "QR"]
+description = "Implementaion of the bbqr spec in rust"
+authors = ["Satoshi Portal Developers <contact@bullbitcoin.com>", "Praveen Perera <praveen@avencera.com>", "ishi <vishalmenon.92@gmail.com>"]
 
 [lib]
 crate_type = ["cdylib", "rlib", "staticlib"]
@@ -9,31 +19,34 @@ crate_type = ["cdylib", "rlib", "staticlib"]
 [features]
 default = ["qr-codes"]
 qr-codes = ["fast_qr"]
-
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-# error handling
-thiserror = "1.0.59"
 
 # hex/base32 encoding
 data-encoding = "2.6.0"
 
-# base36 encoding
-radix_fmt = "1.0.0"
+# generate qr code
+fast_qr = { version = "0.12.5", features = ["svg"], optional = true }
 
 # zlib compression
 flate2 = { version = "1.0", features = ["any_zlib", "zlib"], default-features = false }
 
-# generate qr code
-fast_qr = { version = "0.12.5", features = ["svg"], optional = true } 
-
 # logging
 log = "0.4.21"
 
+# base36 encoding
+radix_fmt = "1.0.0"
+# error handling
+thiserror = "1.0.59"
+
 [dev-dependencies]
+
+pretty_assertions = "1.4.0"
 # for testing
 rand = "0.8.5"
 
-pretty_assertions = "1.4.0"
-
+# The profile that 'cargo dist' will build with
+[profile.dist]
+inherits = "release"
+lto = "thin"
