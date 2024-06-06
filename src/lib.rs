@@ -87,6 +87,7 @@
 //!
 //! ```
 
+pub mod consts;
 pub mod continuous_join;
 pub mod decode;
 pub mod encode;
@@ -95,5 +96,3 @@ pub mod header;
 pub mod join;
 pub mod qr;
 pub mod split;
-
-pub(crate) mod consts;
