@@ -1,13 +1,13 @@
 [package]
 name = "bbqr"
-version = "0.3.1"
+version = "0.3.2"
 edition = "2021"
 license = "MIT"
 rust-version = "1.68"
 readme = "README.md"
 homepage = "https://github.com/SatoshiPortal/bbqr-rust"
 repository = "https://github.com/SatoshiPortal/bbqr-rust"
-documentation = "https://github.com/SatoshiPortal/bbqr-rust"
+documentation = "https://docs.rs/bbqr"
 keywords = ["BBQr", "coinkite", "QR"]
 description = "Implementaion of the bbqr spec in rust"
 authors = ["Satoshi Portal Developers <contact@bullbitcoin.com>", "Praveen Perera <praveen@avencera.com>", "ishi <vishalmenon.92@gmail.com>"]

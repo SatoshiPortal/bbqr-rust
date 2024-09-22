@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+## [0.3.2] - 2024-07-22
+
+- Publish to crates.io, and update link to docs
+
 ## [0.3.1] - 2024-05-15
 
 - Update `fast_qr` dep, and force Alphanumeric encoding when making QR code with `fast_qr`
