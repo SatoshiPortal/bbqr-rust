@@ -62,7 +62,7 @@ impl Header {
     }
 
     /// Try to parse a header from a string
-    pub(crate) fn try_from_str(header_str: &str) -> Result<Self, HeaderParseError> {
+    pub fn try_from_str(header_str: &str) -> Result<Self, HeaderParseError> {
         if header_str.is_empty() {
             return Err(HeaderParseError::Empty);
         }

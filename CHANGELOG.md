@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+## [0.3.3] - 2024-07-22
+
+- Expose `Header::try_from_str` publicly
+
 ## [0.3.2] - 2024-07-22
 
 - Publish to crates.io, and update link to docs
