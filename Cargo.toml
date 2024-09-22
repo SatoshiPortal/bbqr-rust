@@ -8,7 +8,6 @@ readme = "README.md"
 homepage = "https://github.com/SatoshiPortal/bbqr-rust"
 repository = "https://github.com/SatoshiPortal/bbqr-rust"
 documentation = "https://github.com/SatoshiPortal/bbqr-rust"
-categories = ["QR"]
 keywords = ["BBQr", "coinkite", "QR"]
 description = "Implementaion of the bbqr spec in rust"
 authors = ["Satoshi Portal Developers <contact@bullbitcoin.com>", "Praveen Perera <praveen@avencera.com>", "ishi <vishalmenon.92@gmail.com>"]
