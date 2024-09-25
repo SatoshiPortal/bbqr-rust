@@ -2,6 +2,11 @@
 
 ## [Unreleased]
 
+## [0.3.4] - 2024-07-24
+
+- Add `TryFrom` to convert from number to `Version`
+- Add `VersionError` type
+
 ## [0.3.3] - 2024-07-22
 
 - Expose `Header::try_from_str` publicly

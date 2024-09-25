@@ -3,6 +3,13 @@ use std::cmp::Ordering;
 
 use crate::consts::QR_DATA_CAPACITY;
 
+/// Errors that can occur when creating a `Version`
+#[derive(Debug, thiserror::Error, PartialEq, Eq)]
+pub enum VersionError {
+    #[error("Invalid version number, must be between 1 and 40, got {0}")]
+    InvalidVersionNumber(usize),
+}
+
 /// Enum containing all possible `QRCode` versions, taken from fast_qr crate
 /// The version of the QR code, from V01 to V40
 #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord)]
@@ -197,6 +204,94 @@ impl Version {
             _ => panic!("Invalid version number"),
         }
     }
+}
+
+impl TryFrom<usize> for Version {
+    type Error = VersionError;
+
+    fn try_from(version_number: usize) -> Result<Self, Self::Error> {
+        try_from_number(version_number)
+    }
+}
+
+impl TryFrom<u8> for Version {
+    type Error = VersionError;
+
+    fn try_from(version_number: u8) -> Result<Self, Self::Error> {
+        try_from_number(version_number as usize)
+    }
+}
+
+impl TryFrom<u16> for Version {
+    type Error = VersionError;
+
+    fn try_from(version_number: u16) -> Result<Self, Self::Error> {
+        try_from_number(version_number as usize)
+    }
+}
+
+impl TryFrom<u32> for Version {
+    type Error = VersionError;
+
+    fn try_from(version_number: u32) -> Result<Self, Self::Error> {
+        try_from_number(version_number as usize)
+    }
+}
+
+impl TryFrom<u64> for Version {
+    type Error = VersionError;
+
+    fn try_from(version_number: u64) -> Result<Self, Self::Error> {
+        try_from_number(version_number as usize)
+    }
+}
+
+impl TryFrom<i8> for Version {
+    type Error = VersionError;
+
+    fn try_from(version_number: i8) -> Result<Self, Self::Error> {
+        try_from_number(version_number as usize)
+    }
+}
+
+impl TryFrom<i16> for Version {
+    type Error = VersionError;
+
+    fn try_from(version_number: i16) -> Result<Self, Self::Error> {
+        try_from_number(version_number as usize)
+    }
+}
+
+impl TryFrom<i32> for Version {
+    type Error = VersionError;
+
+    fn try_from(version_number: i32) -> Result<Self, Self::Error> {
+        try_from_number(version_number as usize)
+    }
+}
+
+impl TryFrom<i64> for Version {
+    type Error = VersionError;
+
+    fn try_from(version_number: i64) -> Result<Self, Self::Error> {
+        try_from_number(version_number as usize)
+    }
+}
+
+impl TryFrom<isize> for Version {
+    type Error = VersionError;
+
+    fn try_from(version_number: isize) -> Result<Self, Self::Error> {
+        try_from_number(version_number as usize)
+    }
+}
+
+fn try_from_number(version_number: usize) -> Result<Version, VersionError> {
+    if (1..=40).contains(&version_number) {
+        return Ok(Version::from_number(version_number));
+    }
+
+    Err(VersionError::InvalidVersionNumber(version_number))
 }
 
 /// Convert between our type and fast-qr version type
