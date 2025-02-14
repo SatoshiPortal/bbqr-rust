@@ -10,10 +10,14 @@ repository = "https://github.com/SatoshiPortal/bbqr-rust"
 documentation = "https://docs.rs/bbqr"
 keywords = ["BBQr", "coinkite", "QR"]
 description = "Implementaion of the bbqr spec in rust"
-authors = ["Satoshi Portal Developers <contact@bullbitcoin.com>", "Praveen Perera <praveen@avencera.com>", "ishi <vishalmenon.92@gmail.com>"]
+authors = [
+    "Satoshi Portal Developers <contact@bullbitcoin.com>",
+    "Praveen Perera <praveen@avencera.com>",
+    "ishi <vishalmenon.92@gmail.com>",
+]
 
 [lib]
-crate_type = ["cdylib", "rlib", "staticlib"]
+crate-type = ["cdylib", "rlib", "staticlib"]
 
 [features]
 default = ["qr-codes"]
@@ -37,13 +41,13 @@ log = "0.4.21"
 # base36 encoding
 radix_fmt = "1.0.0"
 # error handling
-thiserror = "1.0.59"
+thiserror = "2.0"
 
 [dev-dependencies]
 
 pretty_assertions = "1.4.0"
 # for testing
-rand = "0.8.5"
+rand = "0.9"
 
 # The profile that 'cargo dist' will build with
 [profile.dist]
