@@ -2,6 +2,12 @@
 
 ## [Unreleased]
 
+## [0.3.5] - 2025-03-17
+
+### Internal
+
+- Use `zlib-rs` implementation for zlib encoding/decoding, remove needing to build c lib
+
 ## [0.3.4] - 2024-07-24
 
 - Add `TryFrom` to convert from number to `Version`
