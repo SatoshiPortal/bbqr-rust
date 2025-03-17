@@ -10,7 +10,7 @@ checksum = "512761e0bb2578dd7380c6baaa0f4ce03e84f95e960231d1dec8bf4d7d6e2627"
 
 [[package]]
 name = "bbqr"
-version = "0.3.4"
+version = "0.3.5"
 dependencies = [
  "data-encoding",
  "fast_qr",
