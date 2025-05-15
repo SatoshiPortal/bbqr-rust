@@ -25,6 +25,7 @@ qr-codes = ["fast_qr"]
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+bdk = "0.30.2"
 
 # hex/base32 encoding
 data-encoding = "2.6.0"
