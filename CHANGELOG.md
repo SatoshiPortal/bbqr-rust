@@ -2,6 +2,11 @@
 
 ## [Unreleased]
 
+### Internal
+
+- Update dependencies
+- Bump MSRV to 1.73
+
 ## [0.3.5] - 2025-03-17
 
 ### Internal

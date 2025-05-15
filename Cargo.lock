@@ -26,7 +26,7 @@ dependencies = [
 
 [[package]]
 name = "bbqr"
-version = "0.3.5"
+version = "0.4.0"
 dependencies = [
  "bitcoin",
  "data-encoding",
