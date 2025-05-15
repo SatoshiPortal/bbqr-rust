@@ -3,7 +3,7 @@ name = "bbqr"
 version = "0.3.5"
 edition = "2021"
 license = "MIT"
-rust-version = "1.68"
+rust-version = "1.73"
 readme = "README.md"
 homepage = "https://github.com/SatoshiPortal/bbqr-rust"
 repository = "https://github.com/SatoshiPortal/bbqr-rust"
@@ -29,7 +29,7 @@ qr-codes = ["fast_qr"]
 data-encoding = "2.6.0"
 
 # generate qr code
-fast_qr = { version = "0.12.5", features = ["svg"], optional = true }
+fast_qr = { version = "0.13", features = ["svg"], optional = true }
 
 # zlib compression
 flate2 = { version = "1.0", features = ["any_zlib", "zlib-rs"], default-features = false }
