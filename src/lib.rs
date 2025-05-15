@@ -49,8 +49,8 @@
 //! let joined = Joined::try_from_parts(parts).expect("Failed to join parts");
 //!
 //! /// joined.data has the raw bytes
-//! match &joined.encoding {
-//!   Encoding::Unicode => String::from_utf8(joined.data),
+//! match &joined.file_type {
+//!   FileType::UnicodeText => String::from_utf8(joined.data),
 //!   other => {
 //!     // do whatever
 //!   }
