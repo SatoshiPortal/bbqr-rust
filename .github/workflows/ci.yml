@@ -1,0 +1,50 @@
+name: CI
+
+on:
+  workflow_dispatch: {}
+  push:
+    branches: ["trunk"]
+  pull_request:
+    branches: ["trunk"]
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  rustfmt:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@v4
+
+      - name: Install stable toolchain with rustfmt available
+        uses: actions-rust-lang/setup-rust-toolchain@v1
+
+      - name: Run rustfmt
+        run: cargo fmt --all -- --check
+
+  test:
+    strategy:
+      matrix:
+        os: [ubuntu-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Rust toolchain
+        run: rustup toolchain install stable --profile minimal
+
+      - name: Run tests
+        run: cargo test
+
+  clippy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions-rust-lang/setup-rust-toolchain@v1
+        with:
+          toolchain: stable
+          components: clippy
+          override: true
+
+      - run: cargo clippy -- -D warnings
