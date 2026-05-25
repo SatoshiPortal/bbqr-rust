@@ -2,10 +2,28 @@
 
 ## [Unreleased]
 
+## [0.4.1] - 2026-05-25
+
+### Internal
+
+- Update dependencies
+
+## [0.4.0] - 2025-05-15
+
+### Added
+
+- Add simple split and join example
+- Add PSBT decoding example
+
+### Fixed
+
+- Fix README and crate documentation examples to use `FileType::UnicodeText`
+
 ### Internal
 
 - Update dependencies
 - Bump MSRV to 1.73
+- Improve CI GitHub Action
 
 ## [0.3.5] - 2025-03-17
 
