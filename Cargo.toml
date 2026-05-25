@@ -26,16 +26,16 @@ qr-codes = ["fast_qr"]
 
 [dependencies]
 # hex/base32 encoding
-data-encoding = "2.6.0"
+data-encoding = "2.11"
 
 # generate qr code
 fast_qr = { version = "0.13", features = ["svg"], optional = true }
 
 # zlib compression
-flate2 = { version = "1.0", features = ["any_zlib", "zlib-rs"], default-features = false }
+flate2 = { version = "1.1", features = ["any_zlib", "zlib-rs"], default-features = false }
 
 # logging
-log = "0.4.21"
+log = "0.4.29"
 
 # base36 encoding
 radix_fmt = "1.0.0"
@@ -48,7 +48,7 @@ thiserror = "2.0"
 pretty_assertions = "1.4.0"
 
 # for testing
-rand = "0.9"
+rand = "0.10"
 
 # for examples
 bitcoin = "0.32"
