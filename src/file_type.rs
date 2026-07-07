@@ -3,13 +3,16 @@
 use std::fmt::{self, Display, Formatter};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-/// The file type, currently only supports UnicodeText, Transaction, PSBT, Binary, and CBOR
+/// The file type supported by the BBQr standard
 pub enum FileType {
     Psbt,
     Transaction,
     Json,
     Cbor,
     UnicodeText,
+    KeyTeleportReceiver,
+    KeyTeleportSender,
+    KeyTeleportPsbt,
 }
 
 impl FileType {
@@ -20,6 +23,9 @@ impl FileType {
             b'J' => Some(FileType::Json),
             b'C' => Some(FileType::Cbor),
             b'U' => Some(FileType::UnicodeText),
+            b'R' => Some(FileType::KeyTeleportReceiver),
+            b'S' => Some(FileType::KeyTeleportSender),
+            b'E' => Some(FileType::KeyTeleportPsbt),
             _ => None,
         }
     }
@@ -31,6 +37,9 @@ impl FileType {
             FileType::Json => b'J',
             FileType::Cbor => b'C',
             FileType::UnicodeText => b'U',
+            FileType::KeyTeleportReceiver => b'R',
+            FileType::KeyTeleportSender => b'S',
+            FileType::KeyTeleportPsbt => b'E',
         }
     }
 
@@ -47,6 +56,42 @@ impl Display for FileType {
             FileType::Json => write!(f, "JSON"),
             FileType::Cbor => write!(f, "CBOR"),
             FileType::UnicodeText => write!(f, "Unicode Text"),
+            FileType::KeyTeleportReceiver => write!(f, "Key Teleport Receiver"),
+            FileType::KeyTeleportSender => write!(f, "Key Teleport Sender"),
+            FileType::KeyTeleportPsbt => write!(f, "Key Teleport PSBT"),
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::FileType;
+
+    #[test]
+    fn key_teleport_file_types_roundtrip_bytes() {
+        let cases = [
+            (b'R', FileType::KeyTeleportReceiver),
+            (b'S', FileType::KeyTeleportSender),
+            (b'E', FileType::KeyTeleportPsbt),
+        ];
+
+        for (byte, file_type) in cases {
+            assert_eq!(FileType::from_byte(byte), Some(file_type));
+            assert_eq!(file_type.as_byte(), byte);
+            assert!(FileType::is_known_filetype(byte));
+        }
+    }
+
+    #[test]
+    fn key_teleport_file_types_have_display_names() {
+        assert_eq!(
+            FileType::KeyTeleportReceiver.to_string(),
+            "Key Teleport Receiver"
+        );
+        assert_eq!(
+            FileType::KeyTeleportSender.to_string(),
+            "Key Teleport Sender"
+        );
+        assert_eq!(FileType::KeyTeleportPsbt.to_string(), "Key Teleport PSBT");
     }
 }
