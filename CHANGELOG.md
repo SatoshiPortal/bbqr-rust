@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [0.5.0] - 2026-07-16
+
 ### Added
 
 - Add Key Teleport Receiver, Sender, and PSBT file types
