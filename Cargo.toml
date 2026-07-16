@@ -35,7 +35,7 @@ fast_qr = { version = "0.13", features = ["svg"], optional = true }
 flate2 = { version = "1.1", features = ["any_zlib", "zlib-rs"], default-features = false }
 
 # logging
-log = "0.4.29"
+log = "0.4"
 
 # base36 encoding
 radix_fmt = "1.0.0"
