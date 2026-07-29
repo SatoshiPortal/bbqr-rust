@@ -1,11 +1,9 @@
 # bbqr-rust
 
-<p>
-    <a href="https://crates.io/crates/bbqr"><img alt="Crate Info" src="https://img.shields.io/crates/v/bbqr.svg"/></a>
-    <a href="https://github.com/SatoshiPortal/bbqr-rust/blob/master/LICENSE"><img alt="MIT Licensed" src="https://img.shields.io/badge/MIT-blue.svg"/></a>
-    <a href="https://github.com/SatoshiPortal/bbqr-rust/blob/trunk/.github/workflows/rust.yml"><img alt="CI Status" src="https://github.com/SatoshiPortal/bbqr-rust/workflows/Rust/badge.svg"></a>
-    <a href="https://docs.rs/bbqr"><img alt="Docs" src="https://img.shields.io/badge/docs.rs-green"/></a>
-</p>
+[![crates.io](https://img.shields.io/crates/v/bbqr.svg)](https://crates.io/crates/bbqr)
+[![docs.rs](https://img.shields.io/docsrs/bbqr)](https://docs.rs/bbqr)
+[![Downloads](https://img.shields.io/crates/d/bbqr.svg)](https://crates.io/crates/bbqr)
+[![License](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/SatoshiPortal/bbqr-rust/blob/master/LICENSE)
 
 Implementaion of the bbqr spec in rust:
 
