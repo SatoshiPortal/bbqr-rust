@@ -276,6 +276,7 @@ fn a_header_only_first_frame_does_not_complete_the_join() {
 /// `generate_qr_codes` mapped each part into a QR and then dropped the
 /// failures, so the caller could receive fewer codes than there are parts and
 /// display an animation that can never be reassembled.
+#[cfg(feature = "qr-codes")]
 #[test]
 fn generating_qr_codes_does_not_silently_drop_frames() {
     use bbqr::qr::Version;

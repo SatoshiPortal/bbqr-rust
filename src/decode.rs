@@ -24,7 +24,7 @@ pub enum DecodeError {
 
 /// Ceiling on the size of an inflated `Zlib` payload.
 ///
-/// A BBQr stream can carry at most [`MAX_PARTS`] parts of roughly 2.6 KB of
+/// A BBQr stream can carry at most [`crate::consts::MAX_PARTS`] parts of roughly 2.6 KB of
 /// base32-decoded bytes each, so under 4 MB of *compressed* data — but nothing
 /// bounds what that inflates to, and a few hundred bytes of DEFLATE expand to
 /// tens of megabytes.
