@@ -98,8 +98,11 @@ impl Split {
 
                 Ok::<QRCode, QRCodeError>(qr)
             })
-            .filter_map(Result::ok)
-            .collect();
+            // Collect into a Result rather than filtering the failures out:
+            // dropping one silently returned fewer codes than there are parts,
+            // so the animation shown could never be reassembled and the caller
+            // had no way to know.
+            .collect::<Result<Vec<QRCode>, QRCodeError>>()?;
 
         Ok(qrs)
     }

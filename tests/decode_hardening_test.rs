@@ -227,3 +227,29 @@ fn repeated_empty_frames_do_not_complete_the_join() {
         }
     }
 }
+
+/// `generate_qr_codes` mapped each part into a QR and then dropped the
+/// failures, so the caller could receive fewer codes than there are parts and
+/// display an animation that can never be reassembled.
+#[test]
+fn generating_qr_codes_does_not_silently_drop_frames() {
+    use bbqr::qr::Version;
+
+    // A part far larger than the smallest QR version can hold.
+    let split = Split {
+        version: Version::V01,
+        parts: vec!["B$HP0100".to_string() + &"A".repeat(4000)],
+        encoding: Encoding::Hex,
+    };
+
+    // Surfacing the failure is also correct; silently returning fewer is not.
+    if let Ok(qrs) = split.generate_qr_codes() {
+        assert_eq!(
+            qrs.len(),
+            split.parts.len(),
+            "returned {} codes for {} parts",
+            qrs.len(),
+            split.parts.len()
+        );
+    }
+}
