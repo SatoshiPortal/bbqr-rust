@@ -7,6 +7,7 @@
 use bbqr::{
     encode::Encoding,
     file_type::FileType,
+    header::Header,
     join::Joined,
     split::{Split, SplitOptions},
 };
@@ -74,5 +75,57 @@ fn a_base32_part_that_fails_to_decode_fails_the_join() {
     assert!(
         Joined::try_from_parts(parts).is_err(),
         "a corrupted base32 part must surface an error"
+    );
+}
+
+/// Header parsing slices at byte offsets while the length guard counts bytes,
+/// so a multi-byte character crossing one of those offsets panicked. QR
+/// content is attacker-controlled, and a panic in the scanning path takes the
+/// wallet process down.
+#[test]
+fn a_multibyte_header_is_rejected_not_a_panic() {
+    // Each of these is at least HEADER_LENGTH bytes long and has a multi-byte
+    // character straddling a slice boundary.
+    for input in [
+        "\u{20AC}\u{20AC}\u{20AC}\u{20AC}",
+        "B\u{20AC}ZU0801",
+        "\u{20AC}B$ZU08",
+        "B$\u{20AC}U0801",
+        "B$ZU\u{20AC}801",
+    ] {
+        assert!(
+            Header::try_from_str(input).is_err(),
+            "expected a parse error for {input:?}, not a panic"
+        );
+    }
+}
+
+/// A joined payload cannot exceed what a valid BBQr stream can carry, so an
+/// inflated size far beyond that means the DEFLATE stream is hostile. Without
+/// a bound, `read_to_end` allocates until the process is killed.
+#[test]
+fn a_zlib_bomb_is_rejected_rather_than_inflated() {
+    use flate2::{write::DeflateEncoder, Compression};
+    use std::io::Write as _;
+
+    // Raw DEFLATE, which is what the decoder is configured for: no zlib
+    // wrapper and therefore no adler32 either. 64 MiB of zeros compresses at
+    // close to DEFLATE's 1032:1 ceiling, so a stream spread over several parts
+    // reaches gigabytes once inflated.
+    let mut encoder = DeflateEncoder::new(Vec::new(), Compression::best());
+    encoder
+        .write_all(&vec![0u8; 64 * 1024 * 1024])
+        .expect("write");
+    let compressed = encoder.finish().expect("finish");
+
+    let body = data_encoding::BASE32_NOPAD.encode(&compressed);
+    // header: B$ + Z(zlib) + P(psbt) + total 01 + index 00
+    let frame = format!("B$ZP0100{body}");
+
+    let joined = Joined::try_from_parts(vec![frame]);
+    assert!(
+        joined.is_err(),
+        "an over-large inflation must be refused, got {} bytes",
+        joined.map(|j| j.data.len()).unwrap_or(0),
     );
 }
