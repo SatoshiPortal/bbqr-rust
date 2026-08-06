@@ -24,16 +24,20 @@ pub(crate) fn decode_ordered_parts(
     encoding: Encoding,
 ) -> Result<Vec<u8>, DecodeError> {
     let decoded: Vec<u8> = match encoding {
+        // `collect` into a Result, not `flat_map`: a Result iterates as empty
+        // for Err, so flat_map silently dropped the failing part's bytes and
+        // concatenated the rest. The caller then parsed a short payload as a
+        // PSBT with no indication anything had gone wrong.
         Encoding::Hex => parts
             .iter()
             .enumerate()
-            .flat_map(|(index, part)| {
+            .map(|(index, part)| {
                 HEXUPPER
                     .decode(part.as_bytes())
                     .map_err(|error| DecodeError::UnableToDecodeHex(index, error))
             })
-            .flatten()
-            .collect(),
+            .collect::<Result<Vec<Vec<u8>>, DecodeError>>()?
+            .concat(),
 
         Encoding::Base32 => decode_and_join_base32_parts(parts)?,
 
@@ -58,16 +62,18 @@ pub(crate) fn decode_ordered_parts(
 }
 
 fn decode_and_join_base32_parts(parts: &[String]) -> Result<Vec<u8>, DecodeError> {
+    // See the Hex arm: collecting into a Result keeps a failing part fatal
+    // instead of silently removing it from the payload.
     let decoded: Vec<u8> = parts
         .iter()
         .enumerate()
-        .flat_map(|(index, part)| {
+        .map(|(index, part)| {
             BASE32_NOPAD
                 .decode(part.as_bytes())
                 .map_err(|error| DecodeError::UnableToDecodeBase32(index, error))
         })
-        .flatten()
-        .collect();
+        .collect::<Result<Vec<Vec<u8>>, DecodeError>>()?
+        .concat();
 
     Ok(decoded)
 }

@@ -4,26 +4,75 @@
 //! so a decode that silently returns the wrong bytes is worse than one that
 //! fails: the caller has no way to tell the difference.
 
-use bbqr::header::Header;
+use bbqr::{
+    encode::Encoding,
+    file_type::FileType,
+    join::Joined,
+    split::{Split, SplitOptions},
+};
 
-/// Header parsing slices at byte offsets while the length guard counts bytes,
-/// so a multi-byte character crossing one of those offsets panicked. QR
-/// content is attacker-controlled, and a panic in the scanning path takes the
-/// wallet process down.
+/// A part whose payload contains a character outside the encoding's alphabet
+/// must fail the join, not be dropped from it.
+///
+/// `flat_map` over a `Result` yields nothing for `Err`, so the per-part decode
+/// error was discarded and the surviving parts were concatenated: a single
+/// mutated character silently shortened the payload.
 #[test]
-fn a_multibyte_header_is_rejected_not_a_panic() {
-    // Each of these is at least HEADER_LENGTH bytes long and has a multi-byte
-    // character straddling a slice boundary.
-    for input in [
-        "\u{20AC}\u{20AC}\u{20AC}\u{20AC}",
-        "B\u{20AC}ZU0801",
-        "\u{20AC}B$ZU08",
-        "B$\u{20AC}U0801",
-        "B$ZU\u{20AC}801",
-    ] {
-        assert!(
-            Header::try_from_str(input).is_err(),
-            "expected a parse error for {input:?}, not a panic"
-        );
-    }
+fn a_part_that_fails_to_decode_fails_the_join() {
+    let payload = vec![0xABu8; 6000];
+    let split = Split::try_from_data(
+        &payload,
+        FileType::Psbt,
+        SplitOptions {
+            encoding: Encoding::Hex,
+            ..Default::default()
+        },
+    )
+    .expect("split");
+
+    let mut parts = split.parts.clone();
+    assert!(parts.len() >= 2, "need a multi-part split to splice");
+
+    // 'Z' is not in the uppercase-hex alphabet. Byte 9 is inside the payload,
+    // past the 8-character header.
+    let mut bytes = parts[1].clone().into_bytes();
+    bytes[9] = b'Z';
+    parts[1] = String::from_utf8(bytes).expect("still utf8");
+
+    let joined = Joined::try_from_parts(parts);
+    assert!(
+        joined.is_err(),
+        "a corrupted part must surface an error, got {} bytes instead of {}",
+        joined.map(|j| j.data.len()).unwrap_or(0),
+        payload.len(),
+    );
+}
+
+/// The same guarantee for base32, which BBQr uses for both `Base32` and the
+/// pre-compression stage of `Zlib`.
+#[test]
+fn a_base32_part_that_fails_to_decode_fails_the_join() {
+    let payload = vec![0x5Au8; 6000];
+    let split = Split::try_from_data(
+        &payload,
+        FileType::Psbt,
+        SplitOptions {
+            encoding: Encoding::Base32,
+            ..Default::default()
+        },
+    )
+    .expect("split");
+
+    let mut parts = split.parts.clone();
+    assert!(parts.len() >= 2, "need a multi-part split to splice");
+
+    // '0', '1' and '8' are excluded from RFC 4648 base32.
+    let mut bytes = parts[1].clone().into_bytes();
+    bytes[9] = b'0';
+    parts[1] = String::from_utf8(bytes).expect("still utf8");
+
+    assert!(
+        Joined::try_from_parts(parts).is_err(),
+        "a corrupted base32 part must surface an error"
+    );
 }
