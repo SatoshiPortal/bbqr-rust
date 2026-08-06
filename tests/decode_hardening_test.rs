@@ -129,3 +129,64 @@ fn a_zlib_bomb_is_rejected_rather_than_inflated() {
         joined.map(|j| j.data.len()).unwrap_or(0),
     );
 }
+
+/// Only the first part goes through `Header::try_from_str`; later parts are
+/// length-checked and then sliced by byte offset. A later part carrying
+/// multi-byte text therefore still reached a `&str` slice.
+#[test]
+fn a_later_part_with_multibyte_text_is_rejected_not_a_panic() {
+    let payload = vec![0xABu8; 6000];
+    let split = Split::try_from_data(
+        &payload,
+        FileType::Psbt,
+        SplitOptions {
+            encoding: Encoding::Hex,
+            ..Default::default()
+        },
+    )
+    .expect("split");
+
+    let mut parts = split.parts.clone();
+    assert!(parts.len() >= 2);
+    // Long enough to pass the length guard, with a multi-byte character
+    // occupying bytes 4..7 so that byte offset 6 lands inside it.
+    parts[1] = "AAAA\u{20AC}AAAA".to_string();
+    assert!(
+        !parts[1].is_char_boundary(6),
+        "byte 6 must split a character"
+    );
+
+    assert!(
+        Joined::try_from_parts(parts).is_err(),
+        "a non-ASCII part must be an error, not a panic"
+    );
+}
+
+/// The index characters are only known to exist, never to be base36, and the
+/// parse `unwrap`ed. A frame with punctuation there took the process down.
+#[test]
+fn a_part_with_a_non_base36_index_is_rejected_not_a_panic() {
+    let payload = vec![0xABu8; 6000];
+    let split = Split::try_from_data(
+        &payload,
+        FileType::Psbt,
+        SplitOptions {
+            encoding: Encoding::Hex,
+            ..Default::default()
+        },
+    )
+    .expect("split");
+
+    let mut parts = split.parts.clone();
+    assert!(parts.len() >= 2);
+    let mut bytes = parts[1].clone().into_bytes();
+    // Bytes 6 and 7 are the part index.
+    bytes[6] = b'!';
+    bytes[7] = b'!';
+    parts[1] = String::from_utf8(bytes).expect("still utf8");
+
+    assert!(
+        Joined::try_from_parts(parts).is_err(),
+        "a malformed part index must be an error, not a panic"
+    );
+}

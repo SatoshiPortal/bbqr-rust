@@ -127,8 +127,12 @@ fn get_and_verify_headers(parts: &[String]) -> Result<Header, JoinError> {
             return Err(JoinError::ConflictingHeaders);
         }
 
-        if part[0..6] != first_header[0..6] {
-            return Err(JoinError::ConflictingHeaders);
+        // Only the first part went through Header::try_from_str, so a later
+        // part is not known to be ASCII. Compare with get(), which returns None
+        // instead of panicking when a byte offset lands inside a character.
+        match (part.get(0..6), first_header.get(0..6)) {
+            (Some(part_prefix), Some(first_prefix)) if part_prefix == first_prefix => {}
+            _ => return Err(JoinError::ConflictingHeaders),
         }
     }
 
@@ -137,8 +141,14 @@ fn get_and_verify_headers(parts: &[String]) -> Result<Header, JoinError> {
 
 pub(crate) fn get_index_from_part(part: &str, header: &Header) -> Result<usize, JoinError> {
     // get the index of the the current part
-    // already checked in get_and_verify_headers that the header is long enough
-    let index = usize::from_str_radix(&part[6..8], 36).unwrap();
+    //
+    // get_and_verify_headers only established that the part is long enough and
+    // ASCII, never that these two characters are valid base36, so this cannot
+    // unwrap: a frame with punctuation here would take the process down, and
+    // frames come from a scanned QR.
+    let index_str = part.get(6..8).ok_or(JoinError::ConflictingHeaders)?;
+
+    let index = usize::from_str_radix(index_str, 36).map_err(|_| JoinError::ConflictingHeaders)?;
 
     // more parts than the header says, error
     if index >= header.num_parts {
