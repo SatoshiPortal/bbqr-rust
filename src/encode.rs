@@ -223,7 +223,8 @@ mod tests {
             let encoded = encoded.unwrap();
             assert_eq!(encoded.encoding, Encoding::Zlib);
 
-            let check = decode::decode_ordered_parts(&[encoded.data.clone()], Encoding::Zlib);
+            let check =
+                decode::decode_ordered_parts(std::slice::from_ref(&encoded.data), Encoding::Zlib);
 
             assert!(check.is_ok());
 
@@ -231,7 +232,7 @@ mod tests {
             assert_eq!(check, raw);
 
             let decode_as_base32 =
-                decode::decode_ordered_parts(&[encoded.data.clone()], Encoding::Base32);
+                decode::decode_ordered_parts(std::slice::from_ref(&encoded.data), Encoding::Base32);
             assert!(decode_as_base32.is_ok());
 
             let decode_as_base32 = decode_as_base32.unwrap();
