@@ -6,10 +6,9 @@
 use log::{debug, warn};
 
 use crate::{
-    consts::HEADER_LENGTH,
     decode,
     header::{Header, HeaderParseError},
-    join::{self, JoinError, Joined},
+    join::{JoinError, Joined, ParsedPart},
 };
 
 /// Continuously join the parts of the QR codes into one large piece of data
@@ -33,8 +32,30 @@ enum InternalState {
 /// The state where parts have been added, but not all parts have been joined
 struct InProgress {
     header: Header,
-    data: Vec<String>,
+    data: Vec<Option<String>>,
     parts_left: usize,
+}
+
+impl InProgress {
+    fn ordered_parts(&self) -> Option<Vec<&str>> {
+        self.data.iter().map(Option::as_deref).collect()
+    }
+
+    fn insert(&mut self, index: usize, payload: &str) -> Result<(), JoinError> {
+        match &self.data[index] {
+            Some(current_payload) if current_payload != payload => {
+                return Err(JoinError::DuplicatePartWrongContent(index));
+            }
+            Some(_) => return Ok(()),
+            None => {}
+        }
+
+        debug!("new part added");
+        self.data[index] = Some(payload.to_string());
+        self.parts_left -= 1;
+
+        Ok(())
+    }
 }
 
 /// The result of adding a part to the continuous joiner.
@@ -77,11 +98,9 @@ impl ContinuousJoinResult {
     fn from_internal_state(internal_state: &InternalState) -> Self {
         match internal_state {
             InternalState::Initial => ContinuousJoinResult::NotStarted,
-            InternalState::InProgress(InProgress { parts_left, .. }) => {
-                ContinuousJoinResult::InProgress {
-                    parts_left: *parts_left,
-                }
-            }
+            InternalState::InProgress(in_progress) => ContinuousJoinResult::InProgress {
+                parts_left: in_progress.parts_left,
+            },
             InternalState::Complete(complete) => ContinuousJoinResult::Complete(complete.clone()),
         }
     }
@@ -106,21 +125,26 @@ impl ContinuousJoiner {
 
         match &mut self.internal_state {
             InternalState::Initial => {
-                let header = Header::try_from_str(&part)?;
-                let mut parts = vec![String::new(); header.num_parts];
+                let parsed_part = ParsedPart::try_from_str(&part)?;
+                let header = parsed_part.header;
+                let mut parts = vec![None; header.num_parts];
+                parts[parsed_part.index] = Some(parsed_part.payload.to_string());
 
-                let index = join::get_index_from_part(&part, &header)?;
-
-                let part_data = &part[HEADER_LENGTH..];
-                parts[index] = part_data.to_string();
-
-                let parts_left = header.num_parts - 1;
+                let in_progress = InProgress {
+                    header,
+                    data: parts,
+                    parts_left: header.num_parts - 1,
+                };
+                let parts_left = in_progress.parts_left;
 
                 // If all parts have been joined, return the joined data
                 // This would happen if there is only one part, in which case state goes
                 // directly from initial -> complete
                 let join_state = if parts_left == 0 {
-                    let data = decode::decode_ordered_parts(&parts, header.encoding)?;
+                    let ordered_parts = in_progress
+                        .ordered_parts()
+                        .ok_or(JoinError::ConflictingHeaders)?;
+                    let data = decode::decode_ordered_parts(&ordered_parts, header.encoding)?;
                     let joined = Joined {
                         encoding: header.encoding,
                         file_type: header.file_type,
@@ -133,14 +157,8 @@ impl ContinuousJoiner {
                     ContinuousJoinResult::Complete(joined)
                 } else {
                     // else return the in progress state
-                    let internal_state = InternalState::InProgress(InProgress {
-                        header,
-                        data: parts,
-                        parts_left,
-                    });
-
                     let join_state = ContinuousJoinResult::InProgress { parts_left };
-                    self.internal_state = internal_state;
+                    self.internal_state = InternalState::InProgress(in_progress);
 
                     join_state
                 };
@@ -149,55 +167,25 @@ impl ContinuousJoiner {
             }
 
             InternalState::InProgress(in_progress) => {
-                let part_header = Header::try_from_str(&part)?;
+                let parsed_part = ParsedPart::try_from_str(&part)?;
+                let part_header = parsed_part.header;
                 let header = &in_progress.header;
 
-                if &part_header != header {
+                if part_header != *header {
                     return Err(HeaderParseError::InvalidHeaderParts(
                         "Header parts do not match".to_string(),
                     )
                     .into());
                 }
 
-                let index = join::get_index_from_part(&part, &part_header)?;
-
-                let part_data = part
-                    .get(HEADER_LENGTH..)
-                    .ok_or(JoinError::ConflictingHeaders)?;
-
-                // An empty slot is how "not yet received" is represented, so a
-                // frame carrying no payload could never fill it: each repeat of
-                // the same empty frame found the slot empty again and
-                // decremented the counter a second time, and enough of them
-                // drove it to zero and reported a payload never received.
-                if part_data.is_empty() {
-                    return Err(JoinError::ConflictingHeaders.into());
-                }
-
-                let current_data = &in_progress.data[index];
-
-                // The data for this part is empty.
-                // Which means this is the first time we are seeing data for this part.
-                // Therefore we can decrement the number of parts left to join.
-                if current_data.is_empty() {
-                    debug!("new part added");
-
-                    in_progress.parts_left -= 1;
-                }
-                if !current_data.is_empty() && current_data != part_data {
-                    return Err(JoinError::DuplicatePartWrongContent(index).into());
-                }
-
-                // save the part data, if its not already saved
-                if current_data.is_empty() {
-                    // store the part data in the correct order
-                    in_progress.data[index] = part_data.to_string();
-                }
+                in_progress.insert(parsed_part.index, parsed_part.payload)?;
 
                 // If all parts have been joined, return the joined data
                 let join_state = if in_progress.parts_left == 0 {
-                    let data =
-                        decode::decode_ordered_parts(&in_progress.data, part_header.encoding)?;
+                    let ordered_parts = in_progress
+                        .ordered_parts()
+                        .ok_or(JoinError::ConflictingHeaders)?;
+                    let data = decode::decode_ordered_parts(&ordered_parts, part_header.encoding)?;
 
                     let joined = Joined {
                         encoding: part_header.encoding,

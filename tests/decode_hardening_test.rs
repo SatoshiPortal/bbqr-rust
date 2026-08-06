@@ -5,11 +5,12 @@
 //! fails: the caller has no way to tell the difference.
 
 use bbqr::{
+    decode::MAX_DECOMPRESSED_SIZE,
     encode::Encoding,
     file_type::FileType,
     header::Header,
-    join::Joined,
-    split::{Split, SplitOptions},
+    join::{JoinError, Joined},
+    split::{Split, SplitError, SplitOptions},
 };
 
 /// A part whose payload contains a character outside the encoding's alphabet
@@ -130,6 +131,36 @@ fn a_zlib_bomb_is_rejected_rather_than_inflated() {
     );
 }
 
+/// The splitter cannot create a Zlib stream whose decoded form exceeds the
+/// decoder limit
+#[test]
+fn an_over_limit_zlib_input_is_rejected_before_split() {
+    let payload = vec![0u8; MAX_DECOMPRESSED_SIZE + 1];
+
+    let split = Split::try_from_data(&payload, FileType::Psbt, SplitOptions::default());
+
+    assert_eq!(
+        split.unwrap_err(),
+        SplitError::ZlibInputTooLarge {
+            size: payload.len(),
+            limit: MAX_DECOMPRESSED_SIZE,
+        }
+    );
+}
+
+/// The decoder limit is inclusive, so a source at the limit must still make a
+/// stream that joins to the original data
+#[test]
+fn a_zlib_input_at_the_limit_roundtrips() {
+    let payload = vec![0u8; MAX_DECOMPRESSED_SIZE];
+    let split = Split::try_from_data(&payload, FileType::Psbt, SplitOptions::default())
+        .expect("split at decoder limit");
+
+    let joined = Joined::try_from_parts(split.parts).expect("join at decoder limit");
+
+    assert_eq!(joined.data, payload);
+}
+
 /// Only the first part goes through `Header::try_from_str`; later parts are
 /// length-checked and then sliced by byte offset. A later part carrying
 /// multi-byte text therefore still reached a `&str` slice.
@@ -191,13 +222,11 @@ fn a_part_with_a_non_base36_index_is_rejected_not_a_panic() {
     );
 }
 
-/// A frame that carries a header and no payload leaves its slot empty, so the
-/// next identical frame saw an empty slot again and decremented the counter a
-/// second time. Enough of them drove it to zero and the joiner reported a
-/// complete payload it had never received.
+/// A header-only first frame must not claim its payload slot or change the
+/// joiner state
 #[test]
-fn repeated_empty_frames_do_not_complete_the_join() {
-    use bbqr::continuous_join::{ContinuousJoinResult, ContinuousJoiner};
+fn a_header_only_first_frame_does_not_complete_the_join() {
+    use bbqr::continuous_join::{ContinuousJoinError, ContinuousJoinResult, ContinuousJoiner};
 
     let payload = vec![0xABu8; 6000];
     let split = Split::try_from_data(
@@ -212,25 +241,42 @@ fn repeated_empty_frames_do_not_complete_the_join() {
     let total = split.parts.len();
     assert!(total >= 2);
 
-    // A header-only frame: valid header, zero payload.
+    // a header-only frame has a valid header and no payload
     let header_only = split.parts[0][..8].to_string();
 
     let mut joiner = ContinuousJoiner::new();
-    for _ in 0..(total + 4) {
-        match joiner.add_part(header_only.clone()) {
-            Ok(ContinuousJoinResult::Complete(joined)) => panic!(
-                "empty frames must never complete a join, got {} bytes",
-                joined.data.len()
-            ),
-            Ok(_) => {}
-            Err(_) => return, // refusing the empty frame outright is fine too
-        }
+    assert_eq!(
+        joiner.add_part(header_only),
+        Err(ContinuousJoinError::JoinError(JoinError::PartWithNoData(0)))
+    );
+    assert_eq!(
+        joiner.add_part(String::new()).expect("read joiner state"),
+        ContinuousJoinResult::NotStarted
+    );
+
+    let mut result = ContinuousJoinResult::NotStarted;
+    for part in split.parts.iter().skip(1) {
+        result = joiner.add_part(part.clone()).expect("add valid part");
+
+        assert!(!matches!(result, ContinuousJoinResult::Complete(_)));
     }
+
+    assert_eq!(result, ContinuousJoinResult::InProgress { parts_left: 1 });
+
+    let result = joiner
+        .add_part(split.parts[0].clone())
+        .expect("add missing part");
+    let ContinuousJoinResult::Complete(joined) = result else {
+        panic!("missing part must complete the join");
+    };
+
+    assert_eq!(joined.data, payload);
 }
 
 /// `generate_qr_codes` mapped each part into a QR and then dropped the
 /// failures, so the caller could receive fewer codes than there are parts and
 /// display an animation that can never be reassembled.
+#[cfg(feature = "qr-codes")]
 #[test]
 fn generating_qr_codes_does_not_silently_drop_frames() {
     use bbqr::qr::Version;

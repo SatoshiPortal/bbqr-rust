@@ -2,6 +2,7 @@
 
 use crate::{
     consts::MAX_PARTS,
+    decode::MAX_DECOMPRESSED_SIZE,
     encode::{EncodeError, Encoded, Encoding},
     file_type::FileType,
     header::{int_to_padded_base_36, Header},
@@ -16,6 +17,15 @@ pub enum SplitError {
 
     #[error("Cannot make the data fit")]
     CannotFit,
+
+    /// The source data cannot produce a Zlib stream that the decoder accepts
+    #[error("Zlib input is too large, maximum is {limit} bytes, got {size}")]
+    ZlibInputTooLarge {
+        /// The source data size in bytes
+        size: usize,
+        /// The maximum decoded Zlib size in bytes
+        limit: usize,
+    },
 
     #[error("Max split size is too large, max is {MAX_PARTS}, got {0}")]
     MaxSplitSizeTooLarge(usize),
@@ -120,7 +130,17 @@ fn split_qrs(
     // validate the options
     options.validate()?;
 
+    // reject zlib inputs the decoder would refuse to inflate, before spending
+    // the CPU and memory to compress them
+    if options.encoding == Encoding::Zlib && bytes.len() > MAX_DECOMPRESSED_SIZE {
+        return Err(SplitError::ZlibInputTooLarge {
+            size: bytes.len(),
+            limit: MAX_DECOMPRESSED_SIZE,
+        });
+    }
+
     let encoded = Encoded::try_new_from_data(bytes, options.encoding)?;
+
     let encoded_data_str = encoded.data.as_str();
 
     let best_version: QrsNeeded = find_best_version(&encoded, &options)?;

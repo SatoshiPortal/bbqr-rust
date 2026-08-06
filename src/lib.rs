@@ -36,7 +36,8 @@
 //! // print out each of the parts
 //! println!("{:#?}", split.parts);
 //!
-//! // generate the qr codes
+//! // generate the QR codes when the `qr-codes` feature is enabled
+//! # #[cfg(feature = "qr-codes")]
 //! let qr_codes = split.generate_qr_codes();
 //! ```
 //!
