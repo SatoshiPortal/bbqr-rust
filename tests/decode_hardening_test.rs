@@ -190,3 +190,40 @@ fn a_part_with_a_non_base36_index_is_rejected_not_a_panic() {
         "a malformed part index must be an error, not a panic"
     );
 }
+
+/// A frame that carries a header and no payload leaves its slot empty, so the
+/// next identical frame saw an empty slot again and decremented the counter a
+/// second time. Enough of them drove it to zero and the joiner reported a
+/// complete payload it had never received.
+#[test]
+fn repeated_empty_frames_do_not_complete_the_join() {
+    use bbqr::continuous_join::{ContinuousJoinResult, ContinuousJoiner};
+
+    let payload = vec![0xABu8; 6000];
+    let split = Split::try_from_data(
+        &payload,
+        FileType::Psbt,
+        SplitOptions {
+            encoding: Encoding::Hex,
+            ..Default::default()
+        },
+    )
+    .expect("split");
+    let total = split.parts.len();
+    assert!(total >= 2);
+
+    // A header-only frame: valid header, zero payload.
+    let header_only = split.parts[0][..8].to_string();
+
+    let mut joiner = ContinuousJoiner::new();
+    for _ in 0..(total + 4) {
+        match joiner.add_part(header_only.clone()) {
+            Ok(ContinuousJoinResult::Complete(joined)) => panic!(
+                "empty frames must never complete a join, got {} bytes",
+                joined.data.len()
+            ),
+            Ok(_) => {}
+            Err(_) => return, // refusing the empty frame outright is fine too
+        }
+    }
+}

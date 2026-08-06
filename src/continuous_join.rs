@@ -160,6 +160,20 @@ impl ContinuousJoiner {
                 }
 
                 let index = join::get_index_from_part(&part, &part_header)?;
+
+                let part_data = part
+                    .get(HEADER_LENGTH..)
+                    .ok_or(JoinError::ConflictingHeaders)?;
+
+                // An empty slot is how "not yet received" is represented, so a
+                // frame carrying no payload could never fill it: each repeat of
+                // the same empty frame found the slot empty again and
+                // decremented the counter a second time, and enough of them
+                // drove it to zero and reported a payload never received.
+                if part_data.is_empty() {
+                    return Err(JoinError::ConflictingHeaders.into());
+                }
+
                 let current_data = &in_progress.data[index];
 
                 // The data for this part is empty.
@@ -170,8 +184,6 @@ impl ContinuousJoiner {
 
                     in_progress.parts_left -= 1;
                 }
-
-                let part_data = &part[HEADER_LENGTH..];
                 if !current_data.is_empty() && current_data != part_data {
                     return Err(JoinError::DuplicatePartWrongContent(index).into());
                 }
