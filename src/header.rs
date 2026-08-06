@@ -26,6 +26,9 @@ pub enum HeaderParseError {
 
     #[error("Invalid header parts {0}")]
     InvalidHeaderParts(String),
+
+    #[error("Header is not ASCII")]
+    NotAscii,
 }
 
 /// The header structure, includes the encoding, file type, and number of parts
@@ -67,7 +70,15 @@ impl Header {
             return Err(HeaderParseError::Empty);
         }
 
-        // note: okay to work directyl with bytes here, since only ASCII is used in the protocol
+        // The protocol is ASCII-only, and the checks below index and slice by
+        // byte offset while the length guard counts bytes. Enforce the
+        // assumption rather than rely on it: a multi-byte character straddling
+        // one of those offsets used to panic on a &str slice, and header text
+        // comes from a scanned QR, so it is attacker-controlled.
+        if !header_str.is_ascii() {
+            return Err(HeaderParseError::NotAscii);
+        }
+
         let first_header_bytes = header_str.as_bytes();
 
         let header_len = header_str.len();
