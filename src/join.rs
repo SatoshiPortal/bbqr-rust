@@ -51,6 +51,32 @@ pub struct Joined {
     pub data: Vec<u8>,
 }
 
+pub(crate) struct ParsedPart<'a> {
+    pub header: Header,
+    pub index: usize,
+    pub payload: &'a str,
+}
+
+impl<'a> ParsedPart<'a> {
+    pub fn try_from_str(part: &'a str) -> Result<Self, JoinError> {
+        let header = Header::try_from_str(part)?;
+        let index = get_index_from_part(part, &header)?;
+        let payload = part
+            .get(HEADER_LENGTH..)
+            .ok_or(JoinError::ConflictingHeaders)?;
+
+        if payload.is_empty() {
+            return Err(JoinError::PartWithNoData(index));
+        }
+
+        Ok(Self {
+            header,
+            index,
+            payload,
+        })
+    }
+}
+
 impl Joined {
     pub fn try_from_parts(parts: Vec<String>) -> Result<Self, JoinError> {
         let (header, data) = join_qrs(parts)?;
@@ -64,82 +90,47 @@ impl Joined {
 
 // Take scanned data, put into order, decode, return type code and raw data bytes
 fn join_qrs(input_parts: Vec<String>) -> Result<(Header, Vec<u8>), JoinError> {
-    let header = get_and_verify_headers(input_parts.as_slice())?;
+    let mut parsed_parts = input_parts
+        .iter()
+        .filter(|part| !part.trim().is_empty())
+        .map(|part| ParsedPart::try_from_str(part));
 
-    // pre-allocate the parts, so we can insert them in the correct order, faster than sorting
-    let mut orderered_parts = vec![String::new(); header.num_parts];
+    let first_part = parsed_parts.next().transpose()?.ok_or(JoinError::Empty)?;
+    let header = first_part.header;
 
-    for part in input_parts {
-        if part.is_empty() {
-            continue;
+    // keep missing parts distinct from received payloads
+    let mut ordered_parts = vec![None; header.num_parts];
+
+    for part in std::iter::once(Ok(first_part)).chain(parsed_parts) {
+        let part = part?;
+
+        if part.header != header {
+            return Err(JoinError::ConflictingHeaders);
         }
 
-        let index = get_index_from_part(&part, &header)?;
-
-        let current_part_content = &orderered_parts[index];
-        let part_data = &part[HEADER_LENGTH..];
-
-        if !current_part_content.is_empty() && current_part_content != part_data {
-            return Err(JoinError::DuplicatePartWrongContent(index));
+        match &ordered_parts[part.index] {
+            Some(current_payload) if current_payload != part.payload => {
+                return Err(JoinError::DuplicatePartWrongContent(part.index));
+            }
+            Some(_) => continue,
+            None => {}
         }
 
-        if part_data.is_empty() {
-            return Err(JoinError::PartWithNoData(index));
-        }
-
-        // store the part data in the correct order
-        orderered_parts[index] = part_data.to_string();
+        ordered_parts[part.index] = Some(part.payload.to_string());
     }
 
-    // check if any part is missing
-    for (index, part) in orderered_parts.iter().enumerate() {
-        if part.is_empty() {
-            return Err(JoinError::MissingPart(index));
-        }
-    }
+    let ordered_payloads = ordered_parts
+        .iter()
+        .enumerate()
+        .map(|(index, part)| part.as_deref().ok_or(JoinError::MissingPart(index)))
+        .collect::<Result<Vec<_>, _>>()?;
 
-    let data = decode::decode_ordered_parts(&orderered_parts, header.encoding)?;
+    let data = decode::decode_ordered_parts(&ordered_payloads, header.encoding)?;
 
     Ok((header, data))
 }
 
-/// Verify that all the headers have the same variable filetype, encodings and sizes
-fn get_and_verify_headers(parts: &[String]) -> Result<Header, JoinError> {
-    if parts.is_empty() {
-        return Err(JoinError::Empty);
-    }
-
-    // find first non-empty line
-    let first_header = parts
-        .iter()
-        .find(|line| !line.is_empty())
-        .ok_or(JoinError::Empty)?;
-
-    let header = Header::try_from_str(first_header)?;
-
-    // verify that all the headers are the same
-    for part in parts.iter().skip(1) {
-        if part.trim().is_empty() {
-            continue;
-        }
-
-        if part.len() < HEADER_LENGTH {
-            return Err(JoinError::ConflictingHeaders);
-        }
-
-        // Only the first part went through Header::try_from_str, so a later
-        // part is not known to be ASCII. Compare with get(), which returns None
-        // instead of panicking when a byte offset lands inside a character.
-        match (part.get(0..6), first_header.get(0..6)) {
-            (Some(part_prefix), Some(first_prefix)) if part_prefix == first_prefix => {}
-            _ => return Err(JoinError::ConflictingHeaders),
-        }
-    }
-
-    Ok(header)
-}
-
-pub(crate) fn get_index_from_part(part: &str, header: &Header) -> Result<usize, JoinError> {
+fn get_index_from_part(part: &str, header: &Header) -> Result<usize, JoinError> {
     // get the index of the the current part
     //
     // get_and_verify_headers only established that the part is long enough and
@@ -165,23 +156,19 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_verify_header() {
-        let parts = vec!["", "B$ZU0801", "B$ZU0801", "B$ZU0801", ""]
-            .into_iter()
-            .map(String::from)
-            .collect::<Vec<String>>();
+    fn test_parse_part() {
+        let part = ParsedPart::try_from_str("B$ZU0801A").unwrap();
 
-        let header = get_and_verify_headers(&parts);
-
-        assert!(header.is_ok());
         assert_eq!(
-            header.unwrap(),
+            part.header,
             Header {
                 encoding: Encoding::Zlib,
                 file_type: FileType::UnicodeText,
                 num_parts: 8
             }
         );
+        assert_eq!(part.index, 1);
+        assert_eq!(part.payload, "A");
     }
 
     #[test]
@@ -191,22 +178,22 @@ mod tests {
             .map(String::from)
             .collect::<Vec<String>>();
 
-        let header = get_and_verify_headers(&parts);
+        let joined = join_qrs(parts);
 
-        assert!(header.is_err());
-        assert_eq!(header.unwrap_err(), JoinError::Empty);
+        assert!(joined.is_err());
+        assert_eq!(joined.unwrap_err(), JoinError::Empty);
     }
 
     #[test]
     fn test_catches_conflicting_headers() {
-        let parts = vec!["", "B$ZU0801", "B$ZU0902", "B$ZU0803", ""]
+        let parts = vec!["", "B$ZU0801A", "B$ZU0902B", "B$ZU0803C", ""]
             .into_iter()
             .map(String::from)
             .collect::<Vec<String>>();
 
-        let header = get_and_verify_headers(&parts);
+        let joined = join_qrs(parts);
 
-        assert!(header.is_err());
-        assert_eq!(header.unwrap_err(), JoinError::ConflictingHeaders);
+        assert!(joined.is_err());
+        assert_eq!(joined.unwrap_err(), JoinError::ConflictingHeaders);
     }
 }

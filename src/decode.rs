@@ -34,8 +34,8 @@ pub enum DecodeError {
 /// multisig, and far below what would exhaust a mobile process.
 pub const MAX_DECOMPRESSED_SIZE: usize = 16 * 1024 * 1024;
 
-pub(crate) fn decode_ordered_parts(
-    parts: &[String],
+pub(crate) fn decode_ordered_parts<T: AsRef<str>>(
+    parts: &[T],
     encoding: Encoding,
 ) -> Result<Vec<u8>, DecodeError> {
     let decoded: Vec<u8> = match encoding {
@@ -48,7 +48,7 @@ pub(crate) fn decode_ordered_parts(
             .enumerate()
             .map(|(index, part)| {
                 HEXUPPER
-                    .decode(part.as_bytes())
+                    .decode(part.as_ref().as_bytes())
                     .map_err(|error| DecodeError::UnableToDecodeHex(index, error))
             })
             .collect::<Result<Vec<Vec<u8>>, DecodeError>>()?
@@ -86,7 +86,7 @@ pub(crate) fn decode_ordered_parts(
     Ok(decoded)
 }
 
-fn decode_and_join_base32_parts(parts: &[String]) -> Result<Vec<u8>, DecodeError> {
+fn decode_and_join_base32_parts<T: AsRef<str>>(parts: &[T]) -> Result<Vec<u8>, DecodeError> {
     // See the Hex arm: collecting into a Result keeps a failing part fatal
     // instead of silently removing it from the payload.
     let decoded: Vec<u8> = parts
@@ -94,7 +94,7 @@ fn decode_and_join_base32_parts(parts: &[String]) -> Result<Vec<u8>, DecodeError
         .enumerate()
         .map(|(index, part)| {
             BASE32_NOPAD
-                .decode(part.as_bytes())
+                .decode(part.as_ref().as_bytes())
                 .map_err(|error| DecodeError::UnableToDecodeBase32(index, error))
         })
         .collect::<Result<Vec<Vec<u8>>, DecodeError>>()?
