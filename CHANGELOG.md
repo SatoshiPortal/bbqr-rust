@@ -2,6 +2,18 @@
 
 ## [Unreleased]
 
+## [0.6.0] - 2026-08-10
+
+### Changed
+
+- Limit decoded Zlib payloads to 16 MiB and reject larger Zlib inputs during splitting
+
+### Fixed
+
+- Return errors for invalid Hex and Base32 parts instead of silently producing incomplete joined data
+- Reject malformed headers, part indices, empty payloads, and conflicting stream state without panicking or completing an invalid join
+- Return QR code generation errors instead of silently omitting frames that could not be built
+
 ## [0.5.0] - 2026-07-16
 
 ### Added
