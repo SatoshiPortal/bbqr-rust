@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Fixed
+
+- Keep the internal `ParsedPart` type private to the crate, so binding generators that scan the `join` module no longer pick it up
+
 ## [0.6.0] - 2026-08-10
 
 ### Changed

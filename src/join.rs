@@ -52,13 +52,13 @@ pub struct Joined {
 }
 
 pub(crate) struct ParsedPart<'a> {
-    pub header: Header,
-    pub index: usize,
-    pub payload: &'a str,
+    pub(crate) header: Header,
+    pub(crate) index: usize,
+    pub(crate) payload: &'a str,
 }
 
 impl<'a> ParsedPart<'a> {
-    pub fn try_from_str(part: &'a str) -> Result<Self, JoinError> {
+    pub(crate) fn try_from_str(part: &'a str) -> Result<Self, JoinError> {
         let header = Header::try_from_str(part)?;
         let index = get_index_from_part(part, &header)?;
         let payload = part
